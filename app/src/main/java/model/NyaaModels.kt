@@ -6,8 +6,7 @@ import org.simpleframework.xml.Namespace
 import org.simpleframework.xml.NamespaceList
 import org.simpleframework.xml.Root
 
-// --- 1. XML Model (RSS) ---
-
+// --- 1. MODÈLES RSS (Pour la liste rapide, si besoin) ---
 @Root(name = "rss", strict = false)
 @NamespaceList(
     Namespace(reference = "http://purl.org/dc/elements/1.1/", prefix = "dc"),
@@ -27,47 +26,19 @@ data class RssChannel(
 
 @Root(name = "item", strict = false)
 data class RssItem(
-    @field:Element(name = "title")
-    var title: String = "",
-
-    @field:Element(name = "link")
-    var link: String = "",
-
-    @field:Element(name = "guid")
-    var guid: String = "",
-
-    @field:Element(name = "pubDate")
-    var pubDate: String = "",
-
-    @field:Element(name = "categoryId")
-    @field:Namespace(reference = "https://nyaa.si/xmlns/nyaa")
-    var categoryId: String = "",
-
-    @field:Element(name = "size")
-    @field:Namespace(reference = "https://nyaa.si/xmlns/nyaa")
-    var size: String = "",
-
-    @field:Element(name = "seeders")
-    @field:Namespace(reference = "https://nyaa.si/xmlns/nyaa")
-    var seeders: Int = 0,
-
-    @field:Element(name = "leechers")
-    @field:Namespace(reference = "https://nyaa.si/xmlns/nyaa")
-    var leechers: Int = 0,
-
-    @field:Element(name = "downloads")
-    @field:Namespace(reference = "https://nyaa.si/xmlns/nyaa")
-    var downloads: Int = 0,
-
-    // Le hash n'est pas toujours dans le RSS de base,
-    // mais parfois dans infoHash selon la version du feed
-    @field:Element(name = "infoHash", required = false)
-    @field:Namespace(reference = "https://nyaa.si/xmlns/nyaa")
-    var infoHash: String = ""
+    @field:Element(name = "title") var title: String = "",
+    @field:Element(name = "link") var link: String = "",
+    @field:Element(name = "guid") var guid: String = "",
+    @field:Element(name = "pubDate") var pubDate: String = "",
+    @field:Element(name = "categoryId") @field:Namespace(reference = "https://nyaa.si/xmlns/nyaa") var categoryId: String = "",
+    @field:Element(name = "size") @field:Namespace(reference = "https://nyaa.si/xmlns/nyaa") var size: String = "",
+    @field:Element(name = "seeders") @field:Namespace(reference = "https://nyaa.si/xmlns/nyaa") var seeders: Int = 0,
+    @field:Element(name = "leechers") @field:Namespace(reference = "https://nyaa.si/xmlns/nyaa") var leechers: Int = 0,
+    @field:Element(name = "downloads") @field:Namespace(reference = "https://nyaa.si/xmlns/nyaa") var downloads: Int = 0,
+    @field:Element(name = "infoHash", required = false) @field:Namespace(reference = "https://nyaa.si/xmlns/nyaa") var infoHash: String = ""
 )
 
-// --- 2. UI Model ---
-
+// --- 2. MODÈLE UI PRINCIPAL (Liste) ---
 data class TorrentUI(
     val id: String,
     val title: String,
@@ -82,29 +53,64 @@ data class TorrentUI(
     val commentsCount: Int = 0
 )
 
-// --- 3. Conversion function ---
+// --- 3. MODÈLE DÉTAIL (Page spécifique) ---
+// C'est ceux-là qui manquaient peut-être !
+data class TorrentDetail(
+    val title: String,
+    val magnetLink: String,
+    val torrentFile: String,
+    val descriptionHtml: String,
+    val infoHash: String,
+    val submitter: String,
+    val comments: List<Comment>
+)
 
+data class Comment(
+    val user: String,
+    val date: String,
+    val content: String
+)
+
+// --- 4. CONVERSION (Mapper RSS -> UI) ---
 fun RssItem.toUiModel(): TorrentUI {
-    // Nettoyage de la date (ex: "Wed, 14 Jan 2026 13:58:00 +0000" -> "14 Jan 13:58")
-    val cleanDate = try {
-        pubDate.substringBeforeLast(" +")
-    } catch (e: Exception) { pubDate }
+    val cleanDate = try { pubDate.substringBeforeLast(" +") } catch (e: Exception) { pubDate }
 
+    // C'est ICI que tout se joue : Les textes doivent être EXACTS
     val categoryLabel = when(categoryId) {
-        "1_1" -> "Anime Music Video"
-        "1_2" -> "Anime (Eng)"
-        "1_3" -> "Anime (Non-Eng)"
-        "1_4" -> "Anime (Raw)"
-        "2_1" -> "Audio (Lossless)"
-        "2_2" -> "Audio (Lossy)"
-        "3_1" -> "Manga (Eng)"
-        "3_2" -> "Manga (Non-Eng)"
-        "3_3" -> "Manga (Raw)"
+        // --- 1. ANIME ---
+        "1_1" -> "Anime - AMV"
+        "1_2" -> "Anime - English"
+        "1_3" -> "Anime - Non-English"
+        "1_4" -> "Anime - Raw"
+
+        // --- 2. AUDIO ---
+        "2_1" -> "Audio - Lossless"
+        "2_2" -> "Audio - Lossy"
+
+        // --- 3. LITTÉRATURE ---
+        "3_1" -> "Literature - English"
+        "3_2" -> "Literature - Non-English"
+        "3_3" -> "Literature - Raw"
+
+        // --- 4. LIVE ACTION ---
+        "4_1" -> "Live Action - English"
+        "4_2" -> "Live Action - Idol/PV"
+        "4_3" -> "Live Action - Non-English"
+        "4_4" -> "Live Action - Raw"
+
+        // --- 5. IMAGES ---
+        "5_1" -> "Pictures - Graphics"
+        "5_2" -> "Pictures - Photos"
+
+        // --- 6. LOGICIELS ---
+        "6_1" -> "Software - Apps"
+        "6_2" -> "Software - Games"
+
         else -> "Autre"
     }
 
     return TorrentUI(
-        id = guid.substringAfterLast("/"), // Extrait l'ID de l'URL
+        id = guid.substringAfterLast("/"),
         title = title,
         category = categoryLabel,
         size = size,
