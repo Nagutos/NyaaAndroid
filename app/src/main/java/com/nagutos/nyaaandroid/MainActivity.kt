@@ -24,18 +24,15 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        // 1. Initialisation des préférences
+        // Initializing preferences
         val themePreferences = ThemePreferences(applicationContext)
 
         setContent {
-            // 2. On écoute le choix de l'utilisateur (Clair, Sombre, AMOLED, Système)
+            // Read theme
             val currentTheme by themePreferences.themeFlow.collectAsState(initial = AppTheme.SYSTEM)
 
-            // 3. On vérifie si le système est en mode sombre (pour le cas "SYSTEM")
             val systemInDark = isSystemInDarkTheme()
-
-            // 4. On applique le thème avec les bons paramètres
-            // C'est ici que ça plantait : on utilise maintenant 'appTheme' et 'darkThemeSystem'
+            
             NyaaAndroidTheme(
                 appTheme = currentTheme,
                 darkThemeSystem = systemInDark
@@ -44,7 +41,6 @@ class MainActivity : ComponentActivity() {
 
                 NavHost(navController = navController, startDestination = "home") {
 
-                    // Route ACCUEIL
                     composable("home") {
                         HomeScreen(
                             onTorrentClick = { url ->
@@ -57,13 +53,11 @@ class MainActivity : ComponentActivity() {
                         )
                     }
 
-                    // Route DÉTAIL
                     composable("detail/{torrentUrl}") { backStackEntry ->
                         val url = backStackEntry.arguments?.getString("torrentUrl") ?: ""
                         DetailScreen(url = url)
                     }
 
-                    // Route PARAMÈTRES
                     composable("settings") {
                         SettingsScreen(
                             currentTheme = currentTheme,

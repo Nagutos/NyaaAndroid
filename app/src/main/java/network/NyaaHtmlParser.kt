@@ -23,37 +23,35 @@ object NyaaHtmlParser {
     private fun parseRow(row: Element): TorrentUI {
         val cells = row.select("td")
 
-        // 1. Récupération de l'ID de catégorie (ex: "1_2") via le lien
+        // 1. Retrieve the category ID (e.g., “1_2”) via the link
         val categoryLink = cells[0].select("a").attr("href")
-        // Le lien est souvent "/?c=1_2" ou "/c/1_2", on nettoie pour garder "1_2"
         val categoryId = categoryLink.substringAfter("c=")
 
-        // 2. Titre et ID
+        // 2. Title and ID
         val titleLinks = cells[1].select("a:not(.comments)")
         val titleElement = titleLinks.last()
         val title = titleElement?.text() ?: "Inconnu"
         val detailUrl = titleElement?.attr("href") ?: ""
         val id = detailUrl.substringAfter("/view/")
 
-        // 3. Lien Magnet
+        // 3. Magnet Link
         val links = cells[2].select("a")
         val magnet = links.find { it.attr("href").startsWith("magnet") }?.attr("href")
             ?: links.first()?.attr("href") ?: ""
 
-        // 4. Infos diverses
+        // 4. Miscellaneous information
         val size = cells[3].text()
         val date = cells[4].text()
         val seeders = cells[5].text().toIntOrNull() ?: 0
         val leechers = cells[6].text().toIntOrNull() ?: 0
         val downloads = cells[7].text().toIntOrNull() ?: 0
 
-        // 5. ON APPELLE LA NOUVELLE FONCTION DE LABEL ICI
         val fullCategoryLabel = getCategoryLabel(categoryId)
 
         return TorrentUI(
             id = id,
             title = title,
-            category = fullCategoryLabel, // On passe le label précis (ex: "Audio - Lossless")
+            category = fullCategoryLabel,
             size = size,
             date = date,
             seeders = seeders,
@@ -64,7 +62,6 @@ object NyaaHtmlParser {
         )
     }
 
-    // FONCTION IDENTIQUE À CELLE DU MODÈLE (C'est elle qui manquait !)
     private fun getCategoryLabel(id: String): String {
         return when(id) {
             // --- 1. ANIME ---
@@ -100,7 +97,7 @@ object NyaaHtmlParser {
         }
     }
 
-    // --- PARSING DÉTAIL (Ne change pas) ---
+    // --- PARSING DETAIL ---
     fun parseDetail(html: String): com.nagutos.nyaaandroid.model.TorrentDetail {
         val doc = Jsoup.parse(html)
         val title = doc.select("h3.panel-title").first()?.text()?.replace("File details", "")?.trim() ?: "Inconnu"

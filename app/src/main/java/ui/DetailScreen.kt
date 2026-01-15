@@ -36,7 +36,6 @@ fun DetailScreen(
     url: String,
     viewModel: HomeViewModel = viewModel()
 ) {
-    // 1. DÉCLENCHEUR : Dès que l'écran s'ouvre, on demande au ViewModel de charger les infos
     LaunchedEffect(url) {
         viewModel.loadDetail(url)
     }
@@ -54,14 +53,11 @@ fun DetailScreen(
     ) { innerPadding ->
         Box(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
 
-            // 2. OBSERVATEUR : On regarde l'état du téléchargement
             when (val state = viewModel.detailUiState) {
                 is DetailUiState.Loading -> {
-                    // Ça charge -> On affiche une roue
                     CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
                 }
                 is DetailUiState.Error -> {
-                    // Ça a planté -> On affiche l'erreur
                     Column(
                         modifier = Modifier.align(Alignment.Center).padding(16.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
@@ -79,7 +75,6 @@ fun DetailScreen(
                     }
                 }
                 is DetailUiState.Success -> {
-                    // C'est bon -> On affiche la vue détaillée
                     TorrentDetailView(detail = state.detail)
                 }
             }
@@ -95,7 +90,7 @@ fun TorrentDetailView(detail: TorrentDetail) {
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // --- TITRE & AUTEUR ---
+        // --- TITLE & AUTHOR ---
         item {
             Text(detail.title, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(8.dp))
@@ -111,7 +106,7 @@ fun TorrentDetailView(detail: TorrentDetail) {
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Hash (Info technique)
+            // Hash (Technical information)
             Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
                 Text(
                     text = "Hash: ${detail.infoHash}",
@@ -122,16 +117,14 @@ fun TorrentDetailView(detail: TorrentDetail) {
             }
         }
 
-        // --- BOUTON MAGNET (Le plus important !) ---
+        // --- MAGNET BUTTON ---
         item {
             Button(
                 onClick = {
                     try {
                         val intent = Intent(Intent.ACTION_VIEW, Uri.parse(detail.magnetLink))
                         context.startActivity(intent)
-                    } catch (e: Exception) {
-                        // Pas d'appli torrent
-                    }
+                    } catch (e: Exception) { }
                 },
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE91E63)) // Couleur "Magnet" classique
@@ -142,12 +135,10 @@ fun TorrentDetailView(detail: TorrentDetail) {
             }
         }
 
-        // --- DESCRIPTION (HTML) ---
+        // --- DESCRIPTION ---
         item {
             Text("Description", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(8.dp))
-
-            // On utilise une vue Android native pour afficher le HTML correctement
             AndroidView(
                 factory = { ctx ->
                     TextView(ctx).apply {
@@ -157,13 +148,13 @@ fun TorrentDetailView(detail: TorrentDetail) {
                     }
                 },
                 update = { textView ->
-                    // Convertit le HTML en texte affichable
+                    // Convert HTML
                     textView.text = Html.fromHtml(detail.descriptionHtml, Html.FROM_HTML_MODE_COMPACT)
                 }
             )
         }
 
-        // --- COMMENTAIRES ---
+        // --- COMMENTS ---
         item {
             HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
             Text("Commentaires (${detail.comments.size})", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
@@ -182,7 +173,6 @@ fun TorrentDetailView(detail: TorrentDetail) {
 @Composable
 fun CommentItem(comment: Comment) {
     Row(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
-        // Avatar (Rond de couleur avec la première lettre)
         Box(
             modifier = Modifier
                 .size(40.dp)

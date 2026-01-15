@@ -54,7 +54,6 @@ fun SettingsScreen(
             )
             Spacer(modifier = Modifier.height(16.dp))
 
-            // C'est ICI qu'on liste les boutons. Il manquait celui pour AMOLED.
             Column(modifier = Modifier.selectableGroup()) {
 
                 // 1. CLAIR
@@ -71,14 +70,14 @@ fun SettingsScreen(
                     onClick = { scope.launch { themePreferences.setTheme(AppTheme.DARK) } }
                 )
 
-                // 3. AMOLED (C'est celui-ci qui manquait !)
+                // 3. AMOLED
                 ThemeOption(
                     text = "Thème AMOLED (Noir Pur)",
                     selected = currentTheme == AppTheme.AMOLED,
                     onClick = { scope.launch { themePreferences.setTheme(AppTheme.AMOLED) } }
                 )
 
-                // 4. SYSTÈME
+                // 4. System
                 ThemeOption(
                     text = "Système (Par défaut)",
                     selected = currentTheme == AppTheme.SYSTEM,

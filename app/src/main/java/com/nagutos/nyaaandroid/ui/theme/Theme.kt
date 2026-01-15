@@ -12,7 +12,6 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 import com.nagutos.nyaaandroid.utils.AppTheme
 
-// Configuration du thème CLAIR
 private val LightColorScheme = lightColorScheme(
     primary = PrimaryLight,
     onPrimary = OnPrimaryLight,
@@ -32,7 +31,6 @@ private val LightColorScheme = lightColorScheme(
     outline = OutlineLight
 )
 
-// Configuration du thème SOMBRE (Gris)
 private val DarkColorScheme = darkColorScheme(
     primary = PrimaryDark,
     onPrimary = OnPrimaryDark,
@@ -52,19 +50,18 @@ private val DarkColorScheme = darkColorScheme(
     outline = OutlineDark
 )
 
-// Configuration du thème AMOLED (Noir)
 private val AmoledColorScheme = darkColorScheme(
-    primary = PrimaryDark, // On garde le même bleu que le dark
+    primary = PrimaryDark,
     onPrimary = OnPrimaryDark,
     primaryContainer = PrimaryContainerDark,
-    background = BackgroundAmoled, // VRAI Noir
+    background = BackgroundAmoled,
     onBackground = OnBackgroundDark,
-    surface = SurfaceAmoled,       // VRAI Noir
+    surface = SurfaceAmoled,
     onSurface = OnSurfaceDark,
     surfaceVariant = SurfaceVariantAmoled,
     onSurfaceVariant = OnSurfaceVariantDark,
     error = ErrorDark,
-    outline = OutlineAmoled // Contour gris pour voir les cartes sur fond noir
+    outline = OutlineAmoled
 )
 
 @Composable

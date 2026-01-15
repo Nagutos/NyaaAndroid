@@ -13,14 +13,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-// État pour la liste principale
 sealed interface HomeUiState {
     data object Loading : HomeUiState
     data class Success(val torrents: List<TorrentUI>) : HomeUiState
     data class Error(val message: String) : HomeUiState
 }
 
-// État pour le détail (NOUVEAU)
 sealed interface DetailUiState {
     data object Loading : DetailUiState
     data class Success(val detail: TorrentDetail) : DetailUiState
@@ -29,7 +27,6 @@ sealed interface DetailUiState {
 
 class HomeViewModel : ViewModel() {
 
-    // --- Gestion de la Liste ---
     var uiState: HomeUiState by mutableStateOf(HomeUiState.Loading)
         private set
 
@@ -42,7 +39,6 @@ class HomeViewModel : ViewModel() {
     var currentPage by mutableStateOf(1)
         private set
 
-    // --- Gestion du Détail (NOUVEAU) ---
     var detailUiState: DetailUiState by mutableStateOf(DetailUiState.Loading)
         private set
 
@@ -50,7 +46,6 @@ class HomeViewModel : ViewModel() {
         loadTorrents()
     }
 
-    // --- Fonctions Liste ---
     fun onSearch(query: String, category: String) {
         searchQuery = query
         searchCategory = category
@@ -96,14 +91,11 @@ class HomeViewModel : ViewModel() {
         }
     }
 
-    // --- Fonction Détail (Celle qui posait problème) ---
     fun loadDetail(url: String) {
         viewModelScope.launch {
             detailUiState = DetailUiState.Loading
             try {
                 val detail = withContext(Dispatchers.IO) {
-                    // Jsoup connect direct pour récupérer la page détail
-                    // On ajoute "https://nyaa.si" devant car l'url est souvent "/view/..."
                     val fullUrl = if(url.startsWith("http")) url else "https://nyaa.si$url"
                     val doc = org.jsoup.Jsoup.connect(fullUrl).get()
                     NyaaHtmlParser.parseDetail(doc.outerHtml())

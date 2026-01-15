@@ -55,7 +55,7 @@ fun HomeScreen(
                 title = {
                     Column {
                         Text("Nyaa Torrent")
-                        // Affiche la page actuelle dans le titre
+                        // Displays the current page in the title
                         val filterText = if (viewModel.searchQuery.isNotEmpty()) viewModel.searchQuery else "Récents"
                         Text(
                             text = "$filterText (Page ${viewModel.currentPage})",
@@ -68,16 +68,14 @@ fun HomeScreen(
                     titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
                 ),
                 actions = {
-                    // Bouton Reset existant
                     if (viewModel.searchQuery.isNotEmpty() || viewModel.searchCategory != "0_0") {
                         IconButton(onClick = { viewModel.onSearch("", "0_0") }) {
                             Icon(Icons.Default.Refresh, contentDescription = "Reset")
                         }
                     }
 
-                    // --- NOUVEAU : Bouton Paramètres ---
                     IconButton(onClick = onSettingsClick) {
-                        Icon(Icons.Default.Settings, contentDescription = "Paramètres") // Si 'Settings' est rouge : Alt+Entrée -> Import
+                        Icon(Icons.Default.Settings, contentDescription = "Paramètres")
                     }
                 }
             )
@@ -114,13 +112,11 @@ fun HomeScreen(
 
                 is HomeUiState.Success -> {
                     if (state.torrents.isEmpty()) {
-                        // Cas spécial : Vide
                         EmptyStateView(
                             page = viewModel.currentPage,
                             onGoBack = { viewModel.previousPage() }
                         )
                     } else {
-                        // Liste normale avec pagination en bas
                         TorrentList(
                             torrents = state.torrents,
                             currentPage = viewModel.currentPage,
@@ -134,8 +130,6 @@ fun HomeScreen(
         }
     }
 }
-
-// --- VUES DÉTACHÉES POUR LA CLARTÉ ---
 
 @Composable
 fun EmptyStateView(page: Int, onGoBack: () -> Unit) {
@@ -179,13 +173,13 @@ fun TorrentList(
     onNext: () -> Unit,
     onPrevious: () -> Unit
 ) {
-    val listState = rememberLazyListState() // Nécessaire pour la scrollbar
+    val listState = rememberLazyListState()
 
     LazyColumn(
         state = listState,
         contentPadding = PaddingValues(bottom = 80.dp, top = 8.dp, start = 8.dp, end = 8.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
-        modifier = Modifier.simpleVerticalScrollbar(listState) // <-- On ajoute la scrollbar ici
+        modifier = Modifier.simpleVerticalScrollbar(listState)
     ) {
         items(
             items = torrents,
@@ -195,7 +189,6 @@ fun TorrentList(
         }
 
         item {
-            // --- PAGINATION MINIMALISTE ---
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -203,7 +196,6 @@ fun TorrentList(
                 horizontalArrangement = Arrangement.Center, // Centré
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Bouton Précédent (Icône simple)
                 IconButton(
                     onClick = onPrevious,
                     enabled = currentPage > 1,
@@ -214,7 +206,6 @@ fun TorrentList(
 
                 Spacer(modifier = Modifier.width(16.dp))
 
-                // Numéro de page (Style Badge)
                 Surface(
                     shape = RoundedCornerShape(12.dp),
                     color = MaterialTheme.colorScheme.primaryContainer
@@ -229,7 +220,6 @@ fun TorrentList(
 
                 Spacer(modifier = Modifier.width(16.dp))
 
-                // Bouton Suivant (Icône simple)
                 IconButton(
                     onClick = onNext,
                     colors = IconButtonDefaults.filledIconButtonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
@@ -251,8 +241,6 @@ fun AdvancedSearchDialog(
 ) {
     var query by remember { mutableStateOf(initialQuery) }
 
-    // --- C'EST ICI QU'IL FAUT REMPLACER LA LISTE ---
-    // Cette liste contient TOUTES les sous-catégories de Nyaa
     val categories = listOf(
         "Toutes les catégories" to "0_0",
 
@@ -292,13 +280,9 @@ fun AdvancedSearchDialog(
         "Software - Games" to "6_2"
     )
 
-    // Le reste de la fonction pour trouver la catégorie actuelle
     var selectedCategoryPair by remember {
         mutableStateOf(categories.find { it.second == initialCategory } ?: categories.first())
     }
-
-    // ... (Le reste du code de la Dialog ne change pas : AlertDialog, TextField, etc.) ...
-    // Assure-toi juste de bien garder tout le code en dessous de la liste !
 
     var expanded by remember { mutableStateOf(false) }
 
@@ -381,7 +365,7 @@ fun TorrentItem(torrent: TorrentUI, onClick: () -> Unit) {
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface,
         ),
-        // Bordure pour le mode AMOLED
+        // Border for AMOLED mode
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
         modifier = Modifier
             .fillMaxWidth()
@@ -400,18 +384,18 @@ fun TorrentItem(torrent: TorrentUI, onClick: () -> Unit) {
                 contentAlignment = Alignment.Center
             ) {
                 when {
-                    // 1. Manga / Littérature RAW -> Kanji "文学" (Bungaku = Littérature)
+                    // 1. Manga / Literature RAW -> Kanji “文学” (Bungaku = Literature)
                     torrent.category.contains("Literature - Raw", ignoreCase = true) -> {
                         Text(
                             text = "文学",
                             color = Color.White,
                             fontWeight = FontWeight.Bold,
-                            fontSize = 18.sp, // Taille ajustée pour 2 caractères
+                            fontSize = 18.sp,
                             textAlign = TextAlign.Center
                         )
                     }
 
-                    // 2. AMV -> Texte "AMV"
+                    // 2. AMV -> Text "AMV"
                     torrent.category.contains("AMV", ignoreCase = true) -> {
                         Text(
                             text = "AMV",
@@ -422,7 +406,7 @@ fun TorrentItem(torrent: TorrentUI, onClick: () -> Unit) {
                         )
                     }
 
-                    // 3. Idol -> Texte "Idol"
+                    // 3. Idol -> Text "Idol"
                     torrent.category.contains("Idol", ignoreCase = true) -> {
                         Text(
                             text = "Idol",
@@ -433,8 +417,7 @@ fun TorrentItem(torrent: TorrentUI, onClick: () -> Unit) {
                         )
                     }
 
-                    // 4. Tous les autres RAW (Anime Raw, Live Action Raw...) -> Texte "RAW"
-                    // Note : Comme on a traité "Literature - Raw" au-dessus, il ne rentrera pas ici.
+                    // 4. All other RAWs (Anime Raw, Live Action Raw, etc.) -> Text “RAW”
                     torrent.category.contains("Raw", ignoreCase = true) -> {
                         Text(
                             text = "RAW",
@@ -445,7 +428,7 @@ fun TorrentItem(torrent: TorrentUI, onClick: () -> Unit) {
                         )
                     }
 
-                    // 5. Cas par défaut -> On affiche l'Icône (Musique, Livre, Jeux...)
+                    // 5. Default case -> The icon is displayed (Music, Book, Games, etc.)
                     else -> {
                         Icon(
                             imageVector = getCategoryIcon(torrent.category),
@@ -475,7 +458,6 @@ fun TorrentItem(torrent: TorrentUI, onClick: () -> Unit) {
                 }
             }
 
-            // ... (Seeders/Leechers restent pareils) ...
             Column(horizontalAlignment = Alignment.End) {
                 Text(text = "S: ${torrent.seeders}", color = Color(0xFF4CAF50), style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
                 Text(text = "L: ${torrent.leechers}", color = Color(0xFFF44336), style = MaterialTheme.typography.labelMedium)
@@ -502,7 +484,6 @@ fun Modifier.simpleVerticalScrollbar(
     val targetAlpha = if (state.isScrollInProgress) 1f else 0.3f // Visible quand on scroll, discret sinon
     val duration = if (state.isScrollInProgress) 150 else 500
 
-    // Animation de transparence (optionnel, sinon mettre color static)
     val alpha by animateFloatAsState(targetValue = targetAlpha, animationSpec = tween(duration), label = "")
 
     drawWithContent {
@@ -545,45 +526,31 @@ fun BadgeInfo(text: String, color: Color, textColor: Color) {
 fun getCategoryIcon(category: String): ImageVector {
     return when {
         // --- ANIME ---
-        // AMV -> Movie (Bobine de film)
         category.contains("Anime - AMV", ignoreCase = true) -> Icons.Rounded.Movie
-        // English -> ChatBubble (Indique la langue parlée)
         category.contains("Anime - English", ignoreCase = true) -> Icons.Rounded.ChatBubble
-        // Non-English -> Subtitles (Le logo officiel des sous-titres)
         category.contains("Anime - Non-English", ignoreCase = true) -> Icons.Rounded.Subtitles
-        // Raw -> Grain (Représente le bruit/grain d'une image brute non compressée) ou Code
         category.contains("Raw", ignoreCase = true) -> Icons.Rounded.Grain
-        // Anime Générique -> LiveTv
         category.contains("Anime", ignoreCase = true) -> Icons.Rounded.LiveTv
 
         // --- AUDIO ---
-        // Lossless (FLAC) -> Headphones (Pour l'écoute haute fidélité)
         category.contains("Audio - Lossless", ignoreCase = true) -> Icons.Rounded.Headphones
-        // Lossy (MP3) -> MusicNote (Fichier musique standard)
         category.contains("Audio", ignoreCase = true) -> Icons.Rounded.MusicNote
 
         // --- LITERATURE ---
-        // Book (Livre ouvert)
         category.contains("Literature", ignoreCase = true) -> Icons.Rounded.MenuBook
-        // Book (Livre ouvert)
-        category.contains("Literature - Raw", ignoreCase = true) -> Icons.Rounded.MenuBook
 
         // --- LIVE ACTION ---
-        // Idol/PV -> Face (Visage / Idol)
         category.contains("Idol", ignoreCase = true) -> Icons.Rounded.Face
-        // Live Action Générique -> Theaters (Clap de cinéma)
         category.contains("Live Action", ignoreCase = true) -> Icons.Rounded.Theaters
 
         // --- PICTURES ---
         category.contains("Pictures", ignoreCase = true) -> Icons.Rounded.PhotoLibrary
 
         // --- SOFTWARE ---
-        // Games -> SportsEsports (Manette de jeu moderne)
         category.contains("Games", ignoreCase = true) -> Icons.Rounded.SportsEsports
-        // Apps -> AppSettingsAlt ou Terminal
         category.contains("Software", ignoreCase = true) -> Icons.Rounded.Apps
 
-        // Défaut
+        // Default
         else -> Icons.Rounded.FolderOpen
     }
 }

@@ -6,7 +6,7 @@ import org.simpleframework.xml.Namespace
 import org.simpleframework.xml.NamespaceList
 import org.simpleframework.xml.Root
 
-// --- 1. MODÈLES RSS (Pour la liste rapide, si besoin) ---
+// --- 1. MODÈLES RSS ---
 @Root(name = "rss", strict = false)
 @NamespaceList(
     Namespace(reference = "http://purl.org/dc/elements/1.1/", prefix = "dc"),
@@ -38,7 +38,7 @@ data class RssItem(
     @field:Element(name = "infoHash", required = false) @field:Namespace(reference = "https://nyaa.si/xmlns/nyaa") var infoHash: String = ""
 )
 
-// --- 2. MODÈLE UI PRINCIPAL (Liste) ---
+// --- 2. MODÈLE UI PRINCIPAL ---
 data class TorrentUI(
     val id: String,
     val title: String,
@@ -53,8 +53,7 @@ data class TorrentUI(
     val commentsCount: Int = 0
 )
 
-// --- 3. MODÈLE DÉTAIL (Page spécifique) ---
-// C'est ceux-là qui manquaient peut-être !
+// --- 3. MODÈLE DÉTAIL ---
 data class TorrentDetail(
     val title: String,
     val magnetLink: String,
@@ -71,11 +70,10 @@ data class Comment(
     val content: String
 )
 
-// --- 4. CONVERSION (Mapper RSS -> UI) ---
+// --- 4. CONVERSION (RSS -> UI) ---
 fun RssItem.toUiModel(): TorrentUI {
     val cleanDate = try { pubDate.substringBeforeLast(" +") } catch (e: Exception) { pubDate }
 
-    // C'est ICI que tout se joue : Les textes doivent être EXACTS
     val categoryLabel = when(categoryId) {
         // --- 1. ANIME ---
         "1_1" -> "Anime - AMV"

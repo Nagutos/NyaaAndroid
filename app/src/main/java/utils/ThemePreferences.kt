@@ -7,7 +7,6 @@ import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
-// On crée une extension pour avoir accès au stockage facilement
 private val Context.dataStore by preferencesDataStore(name = "settings")
 
 enum class AppTheme {
@@ -19,10 +18,9 @@ enum class AppTheme {
 
 class ThemePreferences(private val context: Context) {
 
-    // La clé pour sauvegarder
     private val THEME_KEY = stringPreferencesKey("app_theme")
 
-    // Lire le thème (Renvoie un Flow = une valeur qui se met à jour en temps réel)
+    // Read theme
     val themeFlow: Flow<AppTheme> = context.dataStore.data
         .map { preferences ->
             try {
@@ -33,7 +31,7 @@ class ThemePreferences(private val context: Context) {
             }
         }
 
-    // Sauvegarder le thème
+    // Save theme
     suspend fun setTheme(theme: AppTheme) {
         context.dataStore.edit { preferences ->
             preferences[THEME_KEY] = theme.name
