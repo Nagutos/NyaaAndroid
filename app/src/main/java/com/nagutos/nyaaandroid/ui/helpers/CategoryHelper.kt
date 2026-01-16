@@ -8,7 +8,7 @@ import androidx.compose.material.icons.rounded.FolderOpen
 import androidx.compose.material.icons.rounded.Grain
 import androidx.compose.material.icons.rounded.Headphones
 import androidx.compose.material.icons.rounded.LiveTv
-import androidx.compose.material.icons.rounded.MenuBook
+import androidx.compose.material.icons.automirrored.rounded.MenuBook
 import androidx.compose.material.icons.rounded.Movie
 import androidx.compose.material.icons.rounded.MusicNote
 import androidx.compose.material.icons.rounded.PhotoLibrary
@@ -44,7 +44,7 @@ fun getCategoryIcon(category: String): ImageVector {
         category.contains("Audio", ignoreCase = true) -> Icons.Rounded.MusicNote
 
         // --- LITERATURE ---
-        category.contains("Literature", ignoreCase = true) -> Icons.Rounded.MenuBook
+        category.contains("Literature", ignoreCase = true) -> Icons.AutoMirrored.Rounded.MenuBook
 
         // --- LIVE ACTION ---
         category.contains("Idol", ignoreCase = true) -> Icons.Rounded.Face

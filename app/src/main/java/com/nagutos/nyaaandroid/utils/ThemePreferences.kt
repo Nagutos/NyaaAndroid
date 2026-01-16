@@ -26,7 +26,7 @@ class ThemePreferences(private val context: Context) {
             try {
                 val themeName = preferences[THEME_KEY] ?: AppTheme.SYSTEM.name
                 AppTheme.valueOf(themeName)
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 AppTheme.SYSTEM
             }
         }

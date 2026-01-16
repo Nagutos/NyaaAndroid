@@ -124,7 +124,7 @@ fun TorrentDetailView(detail: TorrentDetail) {
                     try {
                         val intent = Intent(Intent.ACTION_VIEW, Uri.parse(detail.magnetLink))
                         context.startActivity(intent)
-                    } catch (e: Exception) { }
+                    } catch (_: Exception) { }
                 },
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE91E63)) // Couleur "Magnet" classique
