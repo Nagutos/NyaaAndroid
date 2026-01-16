@@ -1,4 +1,4 @@
-package com.nagutos.nyaaandroid.ui
+package com.nagutos.nyaaandroid.ui.screens.settings
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.selection.selectable
@@ -89,7 +89,7 @@ fun SettingsScreen(
 }
 
 @Composable
-fun ThemeOption(text: String, selected: Boolean, onClick: () -> Unit) {
+private fun ThemeOption(text: String, selected: Boolean, onClick: () -> Unit) {
     Row(
         Modifier
             .fillMaxWidth()

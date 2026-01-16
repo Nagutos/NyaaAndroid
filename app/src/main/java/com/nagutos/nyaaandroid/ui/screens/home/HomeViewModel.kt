@@ -1,5 +1,6 @@
-package com.nagutos.nyaaandroid.viewmodel
+package com.nagutos.nyaaandroid.ui.screens.home
 
+import com.nagutos.nyaaandroid.network.NyaaNetwork
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -7,7 +8,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nagutos.nyaaandroid.model.TorrentDetail
 import com.nagutos.nyaaandroid.model.TorrentUI
-import com.nagutos.nyaaandroid.network.NyaaApiService.NyaaNetwork
 import com.nagutos.nyaaandroid.network.NyaaHtmlParser
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -96,9 +96,12 @@ class HomeViewModel : ViewModel() {
             detailUiState = DetailUiState.Loading
             try {
                 val detail = withContext(Dispatchers.IO) {
+                    // The parser often returns “/view/123456”; you need to add the domain.
                     val fullUrl = if(url.startsWith("http")) url else "https://nyaa.si$url"
-                    val doc = org.jsoup.Jsoup.connect(fullUrl).get()
-                    NyaaHtmlParser.parseDetail(doc.outerHtml())
+                    val responseBody = NyaaNetwork.api.getTorrentDetailHtml(fullUrl)
+                    val htmlString = responseBody.string()
+
+                    NyaaHtmlParser.parseDetail(htmlString)
                 }
                 detailUiState = DetailUiState.Success(detail)
             } catch (e: Exception) {

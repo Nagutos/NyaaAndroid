@@ -1,5 +1,7 @@
 package com.nagutos.nyaaandroid.network
 
+import com.nagutos.nyaaandroid.model.Comment
+import com.nagutos.nyaaandroid.model.TorrentDetail
 import com.nagutos.nyaaandroid.model.TorrentUI
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
@@ -98,7 +100,7 @@ object NyaaHtmlParser {
     }
 
     // --- PARSING DETAIL ---
-    fun parseDetail(html: String): com.nagutos.nyaaandroid.model.TorrentDetail {
+    fun parseDetail(html: String): TorrentDetail {
         val doc = Jsoup.parse(html)
         val title = doc.select("h3.panel-title").first()?.text()?.replace("File details", "")?.trim() ?: "Inconnu"
         val downloadLink = doc.select("a[href^=magnet:]").attr("href")
@@ -111,10 +113,10 @@ object NyaaHtmlParser {
             val user = element.select("div.col-md-2 a").text()
             val content = element.select("div.comment-content").text()
             val date = element.select("small[title]").attr("title")
-            com.nagutos.nyaaandroid.model.Comment(user, date, content)
+            Comment(user, date, content)
         }
 
-        return com.nagutos.nyaaandroid.model.TorrentDetail(
+        return TorrentDetail(
             title = title,
             magnetLink = downloadLink,
             torrentFile = torrentFileLink,

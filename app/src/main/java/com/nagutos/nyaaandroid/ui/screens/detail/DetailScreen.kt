@@ -1,4 +1,4 @@
-package com.nagutos.nyaaandroid.ui
+package com.nagutos.nyaaandroid.ui.screens.detail
 
 import android.content.Intent
 import android.net.Uri
@@ -18,16 +18,16 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.media3.exoplayer.offline.Download
 import com.nagutos.nyaaandroid.model.Comment
 import com.nagutos.nyaaandroid.model.TorrentDetail
-import com.nagutos.nyaaandroid.viewmodel.DetailUiState
-import com.nagutos.nyaaandroid.viewmodel.HomeViewModel
+import com.nagutos.nyaaandroid.ui.screens.home.DetailUiState
+import com.nagutos.nyaaandroid.ui.screens.home.HomeViewModel
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -85,7 +85,7 @@ fun DetailScreen(
 @Composable
 fun TorrentDetailView(detail: TorrentDetail) {
     val context = LocalContext.current
-
+    val contentColor = MaterialTheme.colorScheme.onSurface.toArgb()
     LazyColumn(
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -143,13 +143,12 @@ fun TorrentDetailView(detail: TorrentDetail) {
                 factory = { ctx ->
                     TextView(ctx).apply {
                         textSize = 14f
-                        setTextColor(android.graphics.Color.DKGRAY)
                         movementMethod = LinkMovementMethod.getInstance() // Liens cliquables
                     }
                 },
                 update = { textView ->
-                    // Convert HTML
                     textView.text = Html.fromHtml(detail.descriptionHtml, Html.FROM_HTML_MODE_COMPACT)
+                    textView.setTextColor(contentColor)
                 }
             )
         }

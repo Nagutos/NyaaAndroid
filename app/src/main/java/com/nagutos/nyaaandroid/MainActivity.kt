@@ -10,9 +10,9 @@ import androidx.compose.runtime.getValue
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.nagutos.nyaaandroid.ui.DetailScreen
-import com.nagutos.nyaaandroid.ui.HomeScreen
-import com.nagutos.nyaaandroid.ui.SettingsScreen
+import com.nagutos.nyaaandroid.ui.screens.detail.DetailScreen
+import com.nagutos.nyaaandroid.ui.screens.home.HomeScreen
+import com.nagutos.nyaaandroid.ui.screens.settings.SettingsScreen
 import com.nagutos.nyaaandroid.ui.theme.NyaaAndroidTheme
 import com.nagutos.nyaaandroid.utils.AppTheme
 import com.nagutos.nyaaandroid.utils.ThemePreferences
