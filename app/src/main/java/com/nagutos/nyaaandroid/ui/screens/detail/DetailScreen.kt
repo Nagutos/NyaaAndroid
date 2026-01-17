@@ -2,9 +2,6 @@ package com.nagutos.nyaaandroid.ui.screens.detail
 
 import android.content.Intent
 import android.net.Uri
-import android.text.Html
-import android.text.method.LinkMovementMethod
-import android.widget.TextView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -22,12 +19,14 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.nagutos.nyaaandroid.model.Comment
 import com.nagutos.nyaaandroid.model.TorrentDetail
 import com.nagutos.nyaaandroid.ui.screens.home.DetailUiState
 import com.nagutos.nyaaandroid.ui.screens.home.HomeViewModel
+import androidx.compose.material3.MaterialTheme
+import com.nagutos.nyaaandroid.ui.components.HtmlDescriptionView
+import com.nagutos.nyaaandroid.ui.components.NyaaMarkdownEngine
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -127,7 +126,7 @@ fun TorrentDetailView(detail: TorrentDetail) {
                     } catch (_: Exception) { }
                 },
                 modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE91E63)) // Couleur "Magnet" classique
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1EA2E9)) // Couleur "Magnet" classique
             ) {
                 Icon(Icons.Default.Download, contentDescription = null)
                 Spacer(modifier = Modifier.width(8.dp))
@@ -139,17 +138,10 @@ fun TorrentDetailView(detail: TorrentDetail) {
         item {
             Text("Description", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(8.dp))
-            AndroidView(
-                factory = { ctx ->
-                    TextView(ctx).apply {
-                        textSize = 14f
-                        movementMethod = LinkMovementMethod.getInstance() // Liens cliquables
-                    }
-                },
-                update = { textView ->
-                    textView.text = Html.fromHtml(detail.descriptionHtml, Html.FROM_HTML_MODE_COMPACT)
-                    textView.setTextColor(contentColor)
-                }
+
+            NyaaMarkdownEngine(
+                rawMarkdown = detail.descriptionHtml,
+                modifier = Modifier.fillMaxWidth()
             )
         }
 
@@ -198,3 +190,4 @@ fun CommentItem(comment: Comment) {
         }
     }
 }
+
