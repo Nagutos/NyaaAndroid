@@ -95,18 +95,18 @@ class HomeViewModel : ViewModel() {
         viewModelScope.launch {
             detailUiState = DetailUiState.Loading
             try {
+                // On bascule sur le thread IO pour le réseau et le parsing Jsoup
                 val detail = withContext(Dispatchers.IO) {
-                    // The parser often returns “/view/123456”; you need to add the domain.
-                    val fullUrl = if(url.startsWith("http")) url else "https://nyaa.si$url"
-                    val responseBody = NyaaNetwork.api.getTorrentDetailHtml(fullUrl)
-                    val htmlString = responseBody.string()
+                    val response = NyaaNetwork.api.getTorrentDetailHtml(url)
+                    val html = response.string()
 
-                    NyaaHtmlParser.parseDetail(htmlString)
+                    // Parsing Jsoup de la page entière
+                    NyaaHtmlParser.parseDetail(html)
                 }
                 detailUiState = DetailUiState.Success(detail)
             } catch (e: Exception) {
                 e.printStackTrace()
-                detailUiState = DetailUiState.Error("Impossible de charger le détail : ${e.message}")
+                detailUiState = DetailUiState.Error(e.message ?: "Erreur de connexion")
             }
         }
     }

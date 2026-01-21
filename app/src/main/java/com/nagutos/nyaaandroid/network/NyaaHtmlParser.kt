@@ -1,6 +1,9 @@
 package com.nagutos.nyaaandroid.network
 
 import com.nagutos.nyaaandroid.model.Comment
+import com.nagutos.nyaaandroid.model.TorrentFile
+import com.nagutos.nyaaandroid.ui.components.TorrentFileListView
+import com.nagutos.nyaaandroid.ui.components.FileListItem
 import com.nagutos.nyaaandroid.model.TorrentDetail
 import com.nagutos.nyaaandroid.model.TorrentUI
 import org.jsoup.Jsoup
@@ -109,6 +112,10 @@ object NyaaHtmlParser {
         val infoHash = doc.select("kbd").first()?.text() ?: ""
         val submitter = doc.select("a[href^=/user/]").first()?.text() ?: "Anonyme"
 
+        // LOGIQUE CORRIGÉE : On récupère l'arbre et on ne fait rien d'autre ici
+        val rootUl = doc.select(".torrent-file-list > ul").first()
+        val fileTree = if (rootUl != null) parseRecursive(rootUl) else emptyList()
+
         val comments = doc.select("div.panel-default:has(div.comment-panel)").map { element ->
             val user = element.select("div.col-md-2 a").text()
             val content = element.select("div.comment-content").text()
@@ -123,7 +130,33 @@ object NyaaHtmlParser {
             descriptionHtml = descriptionHtml,
             infoHash = infoHash,
             submitter = submitter,
-            comments = comments
+            comments = comments,
+            fileTree = fileTree
         )
+    }
+
+    // Changement du type de retour : List<TorrentFile> au lieu de FileNode
+    private fun parseRecursive(ulElement: Element): List<TorrentFile> {
+        val nodes = mutableListOf<TorrentFile>()
+
+        ulElement.children().filter { it.tagName() == "li" }.forEach { li ->
+            val isDir = li.select("i.fa-folder, i.fa-folder-open").isNotEmpty()
+            val size = li.select(".file-size").first()?.text() ?: ""
+
+            val name = li.ownText().trim().ifEmpty {
+                li.text().replace(size, "").trim()
+            }
+
+            val children = if (isDir) {
+                val childUl = li.select("ul").first()
+                if (childUl != null) parseRecursive(childUl) else emptyList()
+            } else {
+                emptyList()
+            }
+
+            // On crée des objets TorrentFile
+            nodes.add(TorrentFile(name, size, isDir, children))
+        }
+        return nodes
     }
 }

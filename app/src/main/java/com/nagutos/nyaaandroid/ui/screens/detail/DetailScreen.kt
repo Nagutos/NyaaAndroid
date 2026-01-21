@@ -8,7 +8,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.InsertDriveFile
 import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -25,7 +27,8 @@ import com.nagutos.nyaaandroid.model.TorrentDetail
 import com.nagutos.nyaaandroid.ui.screens.home.DetailUiState
 import com.nagutos.nyaaandroid.ui.screens.home.HomeViewModel
 import androidx.compose.material3.MaterialTheme
-import com.nagutos.nyaaandroid.ui.components.HtmlDescriptionView
+import androidx.compose.ui.text.style.TextOverflow
+import com.nagutos.nyaaandroid.ui.components.FileNodeItem
 import com.nagutos.nyaaandroid.ui.components.NyaaMarkdownEngine
 
 
@@ -145,6 +148,20 @@ fun TorrentDetailView(detail: TorrentDetail) {
             )
         }
 
+        // --- File List ---
+        item {
+            Text(
+                text = "Fichiers",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(top = 16.dp)
+            )
+        }
+
+        items(detail.fileTree) { rootNode ->
+            FileNodeItem(node = rootNode)
+        }
+
         // --- COMMENTS ---
         item {
             HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
@@ -190,4 +207,3 @@ fun CommentItem(comment: Comment) {
         }
     }
 }
-

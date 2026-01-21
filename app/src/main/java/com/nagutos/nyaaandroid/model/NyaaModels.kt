@@ -21,11 +21,19 @@ data class TorrentDetail(
     val descriptionHtml: String,
     val infoHash: String,
     val submitter: String,
-    val comments: List<Comment>
+    val comments: List<Comment>,
+    val fileTree: List<TorrentFile> = emptyList()
 )
 
 data class Comment(
     val user: String,
     val date: String,
     val content: String
+)
+
+data class TorrentFile(
+    val name: String,
+    val size: String,
+    val isDirectory: Boolean,
+    val children: List<TorrentFile> = emptyList()
 )
