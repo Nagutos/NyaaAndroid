@@ -129,7 +129,7 @@ fun TorrentDetailView(detail: TorrentDetail) {
                     } catch (_: Exception) { }
                 },
                 modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1EA2E9)) // Couleur "Magnet" classique
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1EA2E9))
             ) {
                 Icon(Icons.Default.Download, contentDescription = null)
                 Spacer(modifier = Modifier.width(8.dp))

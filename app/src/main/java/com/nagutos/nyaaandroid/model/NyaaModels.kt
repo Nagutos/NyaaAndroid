@@ -36,4 +36,11 @@ data class TorrentFile(
     val size: String,
     val isDirectory: Boolean,
     val children: List<TorrentFile> = emptyList()
-)
+) {
+    val displaySize: String
+        get() = if (isDirectory && size.isEmpty()) {
+            "(${children.size} fichiers)"
+        } else {
+            size
+        }
+}

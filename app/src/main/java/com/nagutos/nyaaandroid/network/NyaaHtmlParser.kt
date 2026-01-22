@@ -68,7 +68,7 @@ object NyaaHtmlParser {
     }
 
     private fun getCategoryLabel(id: String): String {
-        return when(id) {
+        return when (id) {
             // --- 1. ANIME ---
             "1_1" -> "Anime - AMV"
             "1_2" -> "Anime - English"
@@ -105,7 +105,9 @@ object NyaaHtmlParser {
     // --- PARSING DETAIL ---
     fun parseDetail(html: String): TorrentDetail {
         val doc = Jsoup.parse(html)
-        val title = doc.select("h3.panel-title").first()?.text()?.replace("File details", "")?.trim() ?: "Inconnu"
+        val title =
+            doc.select("h3.panel-title").first()?.text()?.replace("File details", "")?.trim()
+                ?: "Inconnu"
         val downloadLink = doc.select("a[href^=magnet:]").attr("href")
         val torrentFileLink = doc.select("a[href$=.torrent]").attr("href")
         val descriptionHtml = doc.select("#torrent-description").html()
@@ -135,28 +137,30 @@ object NyaaHtmlParser {
         )
     }
 
-    // Changement du type de retour : List<TorrentFile> au lieu de FileNode
     private fun parseRecursive(ulElement: Element): List<TorrentFile> {
-        val nodes = mutableListOf<TorrentFile>()
-
-        ulElement.children().filter { it.tagName() == "li" }.forEach { li ->
+        return ulElement.children().filter { it.tagName() == "li" }.map { li ->
             val isDir = li.select("i.fa-folder, i.fa-folder-open").isNotEmpty()
-            val size = li.select(".file-size").first()?.text() ?: ""
 
-            val name = li.ownText().trim().ifEmpty {
-                li.text().replace(size, "").trim()
+            val fullLiText = li.text()
+
+            val size = li.children().firstOrNull { it.hasClass("file-size") }?.text()?.trim() ?: ""
+
+            var name = li.ownText().trim()
+
+            if (name.isEmpty()) {
+                val childrenText = li.select("ul").first()?.text() ?: ""
+                name = fullLiText.replace(childrenText, "").replace(size, "").trim()
             }
 
+            name = name.removePrefix("[-]").removePrefix("[+]").trim()
+
             val children = if (isDir) {
-                val childUl = li.select("ul").first()
-                if (childUl != null) parseRecursive(childUl) else emptyList()
+                li.select("> ul").first()?.let { parseRecursive(it) } ?: emptyList()
             } else {
                 emptyList()
             }
 
-            // On crée des objets TorrentFile
-            nodes.add(TorrentFile(name, size, isDir, children))
+            TorrentFile(name, size, isDir, children)
         }
-        return nodes
     }
 }
