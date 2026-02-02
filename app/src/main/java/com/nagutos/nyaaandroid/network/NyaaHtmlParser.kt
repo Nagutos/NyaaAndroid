@@ -105,35 +105,38 @@ object NyaaHtmlParser {
     // --- PARSING DETAIL ---
     fun parseDetail(html: String): TorrentDetail {
         val doc = Jsoup.parse(html)
-        val title =
-            doc.select("h3.panel-title").first()?.text()?.replace("File details", "")?.trim()
-                ?: "Inconnu"
-        val downloadLink = doc.select("a[href^=magnet:]").attr("href")
-        val torrentFileLink = doc.select("a[href$=.torrent]").attr("href")
-        val descriptionHtml = doc.select("#torrent-description").html()
-        val infoHash = doc.select("kbd").first()?.text() ?: ""
-        val submitter = doc.select("a[href^=/user/]").first()?.text() ?: "Anonyme"
 
-        // LOGIQUE CORRIGÉE : On récupère l'arbre et on ne fait rien d'autre ici
-        val rootUl = doc.select(".torrent-file-list > ul").first()
-        val fileTree = if (rootUl != null) parseRecursive(rootUl) else emptyList()
+        // Fonction utilitaire interne pour extraire le texte après un label spécifique
+        fun getRowData(label: String): String {
+            return doc.select("div:containsOwn($label) + div").first()?.text()?.trim() ?: ""
+        }
 
         val comments = doc.select("div.panel-default:has(div.comment-panel)").map { element ->
+
             val user = element.select("div.col-md-2 a").text()
+
             val content = element.select("div.comment-content").text()
+
             val date = element.select("small[title]").attr("title")
+
             Comment(user, date, content)
+
         }
 
         return TorrentDetail(
-            title = title,
-            magnetLink = downloadLink,
-            torrentFile = torrentFileLink,
-            descriptionHtml = descriptionHtml,
-            infoHash = infoHash,
-            submitter = submitter,
-            comments = comments,
-            fileTree = fileTree
+            title = doc.select("h3.panel-title").first()?.text()?.replace("File details", "")?.trim() ?: "Inconnu",
+            magnetLink = doc.select("a[href^=magnet:]").attr("href"),
+            torrentFile = doc.select("a[href$=.torrent]").attr("href"),
+            descriptionHtml = doc.select("#torrent-description").html(),
+            infoHash = doc.select("kbd").first()?.text() ?: "",
+            submitter = doc.select("a[href^=/user/]").first()?.text() ?: "Anonyme",
+            date = getRowData("Date"),
+            completed = getRowData("Completed"),
+            totalSize = getRowData("File size"),
+            seeders = doc.select("span[style*=color: green]").first()?.text() ?: "0",
+            leechers = doc.select("span[style*=color: red]").first()?.text() ?: "0",
+            fileTree = doc.select(".torrent-file-list > ul").first()?.let { parseRecursive(it) } ?: emptyList(),
+            comments = comments
         )
     }
 

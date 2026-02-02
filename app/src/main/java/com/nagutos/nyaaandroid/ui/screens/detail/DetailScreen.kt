@@ -8,9 +8,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.InsertDriveFile
 import androidx.compose.material.icons.filled.Download
-import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -27,10 +25,12 @@ import com.nagutos.nyaaandroid.model.TorrentDetail
 import com.nagutos.nyaaandroid.ui.screens.home.DetailUiState
 import com.nagutos.nyaaandroid.ui.screens.home.HomeViewModel
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.ui.text.style.TextOverflow
 import com.nagutos.nyaaandroid.ui.components.FileNodeItem
 import com.nagutos.nyaaandroid.ui.components.NyaaMarkdownEngine
-
+import com.nagutos.nyaaandroid.ui.components.StatBox
+import androidx.compose.material.icons.filled.CalendarToday
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Info
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -94,28 +94,53 @@ fun TorrentDetailView(detail: TorrentDetail) {
     ) {
         // --- TITLE & AUTHOR ---
         item {
-            Text(detail.title, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-            Spacer(modifier = Modifier.height(8.dp))
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("Uploadé par ", style = MaterialTheme.typography.bodyMedium)
+            Column(modifier = Modifier.fillMaxWidth()) {
+                // Titre
                 Text(
-                    text = detail.submitter,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.primary,
+                    text = detail.title,
+                    style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold
                 )
-            }
 
-            Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
-            // Hash (Technical information)
-            Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
-                Text(
-                    text = "Hash: ${detail.infoHash}",
-                    style = MaterialTheme.typography.labelSmall,
-                    modifier = Modifier.padding(8.dp),
-                    fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace
-                )
+                // Ligne : Submitter et Date
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.Person, contentDescription = null, modifier = Modifier.size(16.dp), tint = Color.Gray)
+                    Text(" ${detail.submitter}", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Icon(Icons.Default.CalendarToday, contentDescription = null, modifier = Modifier.size(16.dp), tint = Color.Gray)
+                    Text(" ${detail.date}", style = MaterialTheme.typography.bodySmall)
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Grille de statistiques (Taille, Seed, Leech, Complété)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    StatBox(label = "Poids", value = detail.totalSize, color = MaterialTheme.colorScheme.onSurface)
+                    StatBox(label = "Seeders", value = detail.seeders, color = Color(0xFF2E7D32)) // Vert Nyaa
+                    StatBox(label = "Leechers", value = detail.leechers, color = Color(0xFFC62828)) // Rouge Nyaa
+                    StatBox(label = "Téléchargement Fini", value = detail.completed, color = Color.Gray)
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Info Hash (Plus discret)
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = "Hash: ${detail.infoHash}",
+                        style = MaterialTheme.typography.labelSmall,
+                        modifier = Modifier.padding(8.dp),
+                        fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
+                        color = Color.Gray
+                    )
+                }
             }
         }
 
