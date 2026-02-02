@@ -21,6 +21,11 @@ data class TorrentDetail(
     val descriptionHtml: String,
     val infoHash: String,
     val submitter: String,
+    val date: String,
+    val totalSize: String,
+    val seeders: String,
+    val leechers: String,
+    val completed: String,
     val comments: List<Comment>,
     val fileTree: List<TorrentFile> = emptyList()
 )
