@@ -12,8 +12,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.nagutos.nyaaandroid.ui.screens.home.HomeUiState
-import com.nagutos.nyaaandroid.ui.screens.home.HomeViewModel
 import com.nagutos.nyaaandroid.ui.components.ErrorView
 import com.nagutos.nyaaandroid.ui.components.EmptyStateView
 import com.nagutos.nyaaandroid.ui.components.TorrentList

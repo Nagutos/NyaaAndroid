@@ -7,7 +7,6 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.navigation.NavController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -19,8 +18,6 @@ import com.nagutos.nyaaandroid.ui.screens.settings.SettingsScreen
 import com.nagutos.nyaaandroid.ui.theme.NyaaAndroidTheme
 import com.nagutos.nyaaandroid.utils.AppTheme
 import com.nagutos.nyaaandroid.utils.ThemePreferences
-import java.net.URLEncoder
-import java.nio.charset.StandardCharsets
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
