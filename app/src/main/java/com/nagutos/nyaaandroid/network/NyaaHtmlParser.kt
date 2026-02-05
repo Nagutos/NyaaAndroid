@@ -2,8 +2,6 @@ package com.nagutos.nyaaandroid.network
 
 import com.nagutos.nyaaandroid.model.Comment
 import com.nagutos.nyaaandroid.model.TorrentFile
-import com.nagutos.nyaaandroid.ui.components.TorrentFileListView
-import com.nagutos.nyaaandroid.ui.components.FileListItem
 import com.nagutos.nyaaandroid.model.TorrentDetail
 import com.nagutos.nyaaandroid.model.TorrentUI
 import org.jsoup.Jsoup
