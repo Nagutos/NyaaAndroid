@@ -2,12 +2,10 @@ package com.nagutos.nyaaandroid.ui.screens.detail
 
 import android.content.Intent
 import android.net.Uri
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material3.*
@@ -21,7 +19,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.nagutos.nyaaandroid.model.Comment
 import com.nagutos.nyaaandroid.model.TorrentDetail
 import com.nagutos.nyaaandroid.ui.screens.home.DetailUiState
 import com.nagutos.nyaaandroid.ui.screens.home.HomeViewModel
@@ -33,6 +30,7 @@ import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.navigation.NavController
 import androidx.compose.material.icons.filled.Person
 import java.net.URLEncoder
+import com.nagutos.nyaaandroid.ui.components.CommentItem
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -126,7 +124,8 @@ fun TorrentDetailView(detail: TorrentDetail, navController: NavController) {
                         color = if (isAnonymous) Color.Gray else MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.clickable(enabled = !isAnonymous) {
-                            val encodedQuery = URLEncoder.encode("user:${detail.submitter}", "UTF-8")
+                            val encodedQuery =
+                                URLEncoder.encode("user:${detail.submitter}", "UTF-8")
                             navController.navigate("home?query=$encodedQuery") {
                                 popUpTo("home") { inclusive = true }
                             }
@@ -140,17 +139,37 @@ fun TorrentDetailView(detail: TorrentDetail, navController: NavController) {
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    StatBox(label = "Poids", value = detail.totalSize, color = MaterialTheme.colorScheme.onSurface)
-                    StatBox(label = "Seeders", value = detail.seeders, color = Color(0xFF2E7D32)) // Vert Nyaa
-                    StatBox(label = "Leechers", value = detail.leechers, color = Color(0xFFC62828)) // Rouge Nyaa
-                    StatBox(label = "Téléchargement Fini", value = detail.completed, color = Color.Gray)
+                    StatBox(
+                        label = "Poids",
+                        value = detail.totalSize,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    StatBox(
+                        label = "Seeders",
+                        value = detail.seeders,
+                        color = Color(0xFF2E7D32)
+                    ) // Vert Nyaa
+                    StatBox(
+                        label = "Leechers",
+                        value = detail.leechers,
+                        color = Color(0xFFC62828)
+                    ) // Rouge Nyaa
+                    StatBox(
+                        label = "Téléchargement Fini",
+                        value = detail.completed,
+                        color = Color.Gray
+                    )
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
 
                 // Info Hash (Plus discret)
                 Card(
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(
+                            alpha = 0.5f
+                        )
+                    ),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
@@ -171,7 +190,8 @@ fun TorrentDetailView(detail: TorrentDetail, navController: NavController) {
                     try {
                         val intent = Intent(Intent.ACTION_VIEW, Uri.parse(detail.magnetLink))
                         context.startActivity(intent)
-                    } catch (_: Exception) { }
+                    } catch (_: Exception) {
+                    }
                 },
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1EA2E9))
@@ -184,7 +204,11 @@ fun TorrentDetailView(detail: TorrentDetail, navController: NavController) {
 
         // --- DESCRIPTION ---
         item {
-            Text("Description", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Text(
+                "Description",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
             Spacer(modifier = Modifier.height(8.dp))
 
             NyaaMarkdownEngine(
@@ -210,45 +234,25 @@ fun TorrentDetailView(detail: TorrentDetail, navController: NavController) {
         // --- COMMENTS ---
         item {
             HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
-            Text("Commentaires (${detail.comments.size})", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-        }
-
-        if (detail.comments.isEmpty()) {
-            item { Text("Aucun commentaire pour le moment.", style = MaterialTheme.typography.bodyMedium, color = Color.Gray) }
-        } else {
-            items(detail.comments) { comment ->
-                CommentItem(comment)
-            }
-        }
-    }
-}
-
-@Composable
-fun CommentItem(comment: Comment) {
-    Row(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
-        Box(
-            modifier = Modifier
-                .size(40.dp)
-                .background(MaterialTheme.colorScheme.secondary, CircleShape),
-            contentAlignment = Alignment.Center
-        ) {
             Text(
-                text = comment.user.take(1).uppercase(),
-                color = MaterialTheme.colorScheme.onSecondary,
+                "Commentaires (${detail.comments.size})",
+                style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold
             )
         }
 
-        Spacer(modifier = Modifier.width(12.dp))
-
-        Column {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(comment.user, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(comment.date, style = MaterialTheme.typography.labelSmall, color = Color.Gray)
+        if (detail.comments.isEmpty()) {
+            item {
+                Text(
+                    "Aucun commentaire pour le moment.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.Gray
+                )
             }
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(comment.content, style = MaterialTheme.typography.bodyMedium)
+        } else {
+            items(detail.comments) { comment ->
+                CommentItem(comment)
+            }
         }
     }
 }
