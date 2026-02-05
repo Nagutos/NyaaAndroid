@@ -1,6 +1,5 @@
 package com.nagutos.nyaaandroid.ui.screens.home
 
-import com.nagutos.nyaaandroid.network.NyaaNetwork
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -9,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.nagutos.nyaaandroid.model.TorrentDetail
 import com.nagutos.nyaaandroid.model.TorrentUI
 import com.nagutos.nyaaandroid.network.NyaaHtmlParser
+import com.nagutos.nyaaandroid.network.NyaaNetwork
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -42,13 +42,24 @@ class HomeViewModel : ViewModel() {
     var detailUiState: DetailUiState by mutableStateOf(DetailUiState.Loading)
         private set
 
+    var searchUser by mutableStateOf<String?>(null)
+        private set
+
     init {
         loadTorrents()
     }
 
     fun onSearch(query: String, category: String) {
+        searchUser = null
         searchQuery = query
         searchCategory = category
+        currentPage = 1
+        loadTorrents()
+    }
+
+    fun onUserSearch(username: String) {
+        searchUser = username
+        searchQuery = ""
         currentPage = 1
         loadTorrents()
     }
@@ -65,6 +76,8 @@ class HomeViewModel : ViewModel() {
         }
     }
 
+
+
     fun loadTorrents() {
         viewModelScope.launch {
             uiState = HomeUiState.Loading
@@ -73,7 +86,8 @@ class HomeViewModel : ViewModel() {
                     val responseBody = NyaaNetwork.api.getTorrentsHtml(
                         query = searchQuery,
                         category = searchCategory,
-                        page = currentPage
+                        page = currentPage,
+                        user = searchUser
                     )
                     val htmlString = responseBody.string()
                     NyaaHtmlParser.parseTorrents(htmlString)

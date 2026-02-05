@@ -33,7 +33,8 @@ data class TorrentDetail(
 data class Comment(
     val user: String,
     val date: String,
-    val content: String
+    val content: String,
+    val avatarUrl: String
 )
 
 data class TorrentFile(

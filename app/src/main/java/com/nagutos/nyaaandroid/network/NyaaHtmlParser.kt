@@ -2,8 +2,6 @@ package com.nagutos.nyaaandroid.network
 
 import com.nagutos.nyaaandroid.model.Comment
 import com.nagutos.nyaaandroid.model.TorrentFile
-import com.nagutos.nyaaandroid.ui.components.TorrentFileListView
-import com.nagutos.nyaaandroid.ui.components.FileListItem
 import com.nagutos.nyaaandroid.model.TorrentDetail
 import com.nagutos.nyaaandroid.model.TorrentUI
 import org.jsoup.Jsoup
@@ -111,16 +109,13 @@ object NyaaHtmlParser {
             return doc.select("div:containsOwn($label) + div").first()?.text()?.trim() ?: ""
         }
 
-        val comments = doc.select("div.panel-default:has(div.comment-panel)").map { element ->
-
+        val comments = doc.select("div[id^=com-]").map { element ->
+            val avatarUrl = element.select("div.col-md-2 img").attr("src")
+                .let { if (it.startsWith("//")) "https:$it" else it }
             val user = element.select("div.col-md-2 a").text()
-
             val content = element.select("div.comment-content").text()
-
             val date = element.select("small[title]").attr("title")
-
-            Comment(user, date, content)
-
+            Comment(user, date, content, avatarUrl)
         }
 
         return TorrentDetail(
