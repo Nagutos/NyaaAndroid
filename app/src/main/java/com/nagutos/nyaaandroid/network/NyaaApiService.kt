@@ -11,7 +11,8 @@ interface NyaaApiService {
     suspend fun getTorrentsHtml(
         @Query("q") query: String = "",
         @Query("c") category: String = "0_0",
-        @Query("p") page: Int = 1
+        @Query("p") page: Int = 1,
+        @Query("u") user: String? = null
     ): ResponseBody
     @GET
     suspend fun getTorrentDetailHtml(@Url url: String): ResponseBody

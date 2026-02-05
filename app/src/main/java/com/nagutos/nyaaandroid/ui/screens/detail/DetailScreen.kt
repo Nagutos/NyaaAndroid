@@ -3,6 +3,7 @@ package com.nagutos.nyaaandroid.ui.screens.detail
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -28,14 +29,16 @@ import androidx.compose.material3.MaterialTheme
 import com.nagutos.nyaaandroid.ui.components.FileNodeItem
 import com.nagutos.nyaaandroid.ui.components.NyaaMarkdownEngine
 import com.nagutos.nyaaandroid.ui.components.StatBox
-import androidx.compose.material.icons.filled.CalendarToday
+import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.navigation.NavController
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Info
+import java.net.URLEncoder
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DetailScreen(
     url: String,
+    navController: NavController,
     viewModel: HomeViewModel = viewModel()
 ) {
     LaunchedEffect(url) {
@@ -77,7 +80,7 @@ fun DetailScreen(
                     }
                 }
                 is DetailUiState.Success -> {
-                    TorrentDetailView(detail = state.detail)
+                    TorrentDetailView(detail = state.detail, navController = navController)
                 }
             }
         }
@@ -85,7 +88,7 @@ fun DetailScreen(
 }
 
 @Composable
-fun TorrentDetailView(detail: TorrentDetail) {
+fun TorrentDetailView(detail: TorrentDetail, navController: NavController) {
     val context = LocalContext.current
     val contentColor = MaterialTheme.colorScheme.onSurface.toArgb()
     LazyColumn(
@@ -96,23 +99,40 @@ fun TorrentDetailView(detail: TorrentDetail) {
         item {
             Column(modifier = Modifier.fillMaxWidth()) {
                 // Titre
-                Text(
-                    text = detail.title,
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold
-                )
+                SelectionContainer {
+                    Text(
+                        text = detail.title,
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
 
                 Spacer(modifier = Modifier.height(12.dp))
 
                 // Ligne : Submitter et Date
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.Person, contentDescription = null, modifier = Modifier.size(16.dp), tint = Color.Gray)
-                    Text(" ${detail.submitter}", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
-                    Spacer(modifier = Modifier.width(16.dp))
-                    Icon(Icons.Default.CalendarToday, contentDescription = null, modifier = Modifier.size(16.dp), tint = Color.Gray)
-                    Text(" ${detail.date}", style = MaterialTheme.typography.bodySmall)
-                }
+                    Icon(
+                        Icons.Default.Person,
+                        null,
+                        modifier = Modifier.size(16.dp),
+                        tint = Color.Gray
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
 
+                    val isAnonymous = detail.submitter == "Anonyme"
+                    Text(
+                        text = detail.submitter,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = if (isAnonymous) Color.Gray else MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.clickable(enabled = !isAnonymous) {
+                            val encodedQuery = URLEncoder.encode("user:${detail.submitter}", "UTF-8")
+                            navController.navigate("home?query=$encodedQuery") {
+                                popUpTo("home") { inclusive = true }
+                            }
+                        }
+                    )
+                }
                 Spacer(modifier = Modifier.height(16.dp))
 
                 // Grille de statistiques (Taille, Seed, Leech, Complété)

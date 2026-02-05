@@ -7,9 +7,12 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.navigation.NavController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.nagutos.nyaaandroid.ui.screens.detail.DetailScreen
 import com.nagutos.nyaaandroid.ui.screens.home.HomeScreen
 import com.nagutos.nyaaandroid.ui.screens.settings.SettingsScreen
@@ -41,10 +44,22 @@ class MainActivity : ComponentActivity() {
 
                 NavHost(navController = navController, startDestination = "home") {
 
-                    composable("home") {
+                    composable(
+                        route = "home?query={query}",
+                        arguments = listOf(
+                            navArgument("query") {
+                                defaultValue = ""
+                                type = NavType.StringType
+                            }
+                        )
+                    ) { backStackEntry ->
+                        val query = backStackEntry.arguments?.getString("query") ?: ""
+
                         HomeScreen(
+                            navController = navController,
+                            initialQuery = query,
                             onTorrentClick = { url ->
-                                val encodedUrl = URLEncoder.encode(url, StandardCharsets.UTF_8.toString())
+                                val encodedUrl = java.net.URLEncoder.encode(url, "UTF-8")
                                 navController.navigate("detail/$encodedUrl")
                             },
                             onSettingsClick = {
@@ -53,9 +68,12 @@ class MainActivity : ComponentActivity() {
                         )
                     }
 
-                    composable("detail/{torrentUrl}") { backStackEntry ->
-                        val url = backStackEntry.arguments?.getString("torrentUrl") ?: ""
-                        DetailScreen(url = url)
+                    composable("detail/{url}") { backStackEntry ->
+                        val url = backStackEntry.arguments?.getString("url") ?: ""
+                        DetailScreen(
+                            url = url,
+                            navController = navController
+                        )
                     }
 
                     composable("settings") {

@@ -11,6 +11,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import com.nagutos.nyaaandroid.ui.screens.home.HomeUiState
 import com.nagutos.nyaaandroid.ui.screens.home.HomeViewModel
 import com.nagutos.nyaaandroid.ui.components.ErrorView
@@ -22,21 +23,35 @@ import com.nagutos.nyaaandroid.ui.components.TorrentList
 fun HomeScreen(
     onTorrentClick: (String) -> Unit,
     onSettingsClick: () -> Unit,
+    navController: NavController,
+    initialQuery: String = "",
     viewModel: HomeViewModel = viewModel()
 ) {
     var showSearchDialog by remember { mutableStateOf(false) }
-
+    LaunchedEffect(initialQuery) {
+        if (initialQuery.startsWith("user:")) {
+            val username = initialQuery.removePrefix("user:")
+            viewModel.onUserSearch(username)
+        } else if (initialQuery.isNotEmpty()) {
+            viewModel.onSearch(initialQuery, viewModel.searchCategory)
+        }
+    }
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
                     Column {
                         Text("Nyaa Torrent")
-                        // Displays the current page in the title
-                        val filterText = if (viewModel.searchQuery.isNotEmpty()) viewModel.searchQuery else "Récents"
+                        val filterText = when {
+                            viewModel.searchUser != null -> "Uploader : ${viewModel.searchUser}"
+                            viewModel.searchQuery.isNotEmpty() -> viewModel.searchQuery
+                            else -> "Récents"
+                        }
+
                         Text(
                             text = "$filterText (Page ${viewModel.currentPage})",
-                            style = MaterialTheme.typography.labelSmall
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
                         )
                     }
                 },
@@ -45,7 +60,10 @@ fun HomeScreen(
                     titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
                 ),
                 actions = {
-                    if (viewModel.searchQuery.isNotEmpty() || viewModel.searchCategory != "0_0") {
+                    if (viewModel.searchQuery.isNotEmpty() ||
+                        viewModel.searchCategory != "0_0" ||
+                        viewModel.searchUser != null) {
+
                         IconButton(onClick = { viewModel.onSearch("", "0_0") }) {
                             Icon(Icons.Default.Refresh, contentDescription = "Reset")
                         }
