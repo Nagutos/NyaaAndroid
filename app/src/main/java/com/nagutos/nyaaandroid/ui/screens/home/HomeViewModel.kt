@@ -50,10 +50,10 @@ class HomeViewModel : ViewModel() {
     }
 
     fun onSearch(query: String, category: String) {
-        searchUser = null
-        searchQuery = query
-        searchCategory = category
-        currentPage = 1
+        this.searchUser = null
+        this.searchQuery = query
+        this.searchCategory = category
+        this.currentPage = 1
         loadTorrents()
     }
 
