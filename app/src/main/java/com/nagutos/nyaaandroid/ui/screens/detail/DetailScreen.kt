@@ -1,5 +1,6 @@
 package com.nagutos.nyaaandroid.ui.screens.detail
 
+import android.app.Application
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.clickable
@@ -31,13 +32,16 @@ import androidx.navigation.NavController
 import androidx.compose.material.icons.filled.Person
 import java.net.URLEncoder
 import com.nagutos.nyaaandroid.ui.components.CommentItem
+import com.nagutos.nyaaandroid.ui.screens.home.HomeViewModelFactory
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DetailScreen(
     url: String,
     navController: NavController,
-    viewModel: HomeViewModel = viewModel()
+    viewModel: HomeViewModel = viewModel(
+        factory = HomeViewModelFactory(LocalContext.current.applicationContext as Application)
+    )
 ) {
     LaunchedEffect(url) {
         viewModel.loadDetail(url)

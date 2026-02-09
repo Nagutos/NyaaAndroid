@@ -13,9 +13,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -32,13 +36,17 @@ import com.nagutos.nyaaandroid.ui.helpers.getCategoryIcon
 import com.nagutos.nyaaandroid.ui.helpers.getCategoryColor
 
 @Composable
-fun TorrentItem(torrent: TorrentUI, onClick: () -> Unit) {
+fun TorrentItem(
+    torrent: TorrentUI,
+    isFavorite: Boolean,
+    onToggleFavorite: () -> Unit,
+    onClick: () -> Unit
+) {
     Card(
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface,
         ),
-        // Border for AMOLED mode
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
         modifier = Modifier
             .fillMaxWidth()
@@ -134,6 +142,13 @@ fun TorrentItem(torrent: TorrentUI, onClick: () -> Unit) {
             Column(horizontalAlignment = Alignment.End) {
                 Text(text = "S: ${torrent.seeders}", color = Color(0xFF4CAF50), style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
                 Text(text = "L: ${torrent.leechers}", color = Color(0xFFF44336), style = MaterialTheme.typography.labelMedium)
+            }
+            IconButton(onClick = onToggleFavorite) {
+                Icon(
+                    imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                    contentDescription = "Favori",
+                    tint = if (isFavorite) Color(0xFFE91E63) else Color.Gray
+                )
             }
         }
     }

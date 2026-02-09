@@ -3,15 +3,23 @@ package com.nagutos.nyaaandroid.ui.screens.home
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.nagutos.nyaaandroid.data.local.entity.FavoriteTorrent
+import com.nagutos.nyaaandroid.data.local.entity.NyaaDatabase
+import com.nagutos.nyaaandroid.data.repository.FavoriteRepository
 import com.nagutos.nyaaandroid.model.TorrentDetail
 import com.nagutos.nyaaandroid.model.TorrentUI
 import com.nagutos.nyaaandroid.network.NyaaHtmlParser
 import com.nagutos.nyaaandroid.network.NyaaNetwork
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.flow.stateIn
 
 sealed interface HomeUiState {
     data object Loading : HomeUiState
@@ -25,7 +33,7 @@ sealed interface DetailUiState {
     data class Error(val message: String) : DetailUiState
 }
 
-class HomeViewModel : ViewModel() {
+class HomeViewModel(application: Application) : AndroidViewModel(application) {
 
     var uiState: HomeUiState by mutableStateOf(HomeUiState.Loading)
         private set
@@ -45,9 +53,21 @@ class HomeViewModel : ViewModel() {
     var searchUser by mutableStateOf<String?>(null)
         private set
 
+    private val database = NyaaDatabase.getDatabase(getApplication())
+    private val repository = FavoriteRepository(database.favoriteDao())
+
+    val favoriteTorrents: StateFlow<List<FavoriteTorrent>> = repository.allFavorites
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
+
     init {
         loadTorrents()
     }
+
+
 
     fun onSearch(query: String, category: String) {
         this.searchUser = null
@@ -76,6 +96,18 @@ class HomeViewModel : ViewModel() {
         }
     }
 
+    fun toggleFavorite(torrent: TorrentUI, isCurrentlyFavorite: Boolean) {
+        viewModelScope.launch {
+            if (isCurrentlyFavorite) {
+                repository.deleteById(torrent.id)
+            } else {
+                repository.addFavorite(torrent)
+            }
+        }
+    }
+
+    // Pour vérifier si un torrent spécifique est favori (utile pour l'écran détail)
+    fun isFavorite(torrentId: String): Flow<Boolean> = repository.isFavorite(torrentId)
 
 
     fun loadTorrents() {

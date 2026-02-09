@@ -1,5 +1,6 @@
 package com.nagutos.nyaaandroid.ui.screens.home
 
+import android.app.Application
 import androidx.activity.compose.BackHandler
 import com.nagutos.nyaaandroid.ui.components.AdvancedSearchDialog
 import androidx.compose.foundation.layout.*
@@ -20,6 +21,7 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.platform.LocalContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -28,8 +30,12 @@ fun HomeScreen(
     onSettingsClick: () -> Unit,
     navController: NavController,
     initialQuery: String = "",
-    viewModel: HomeViewModel = viewModel()
+    viewModel: HomeViewModel = viewModel(
+        factory = HomeViewModelFactory(LocalContext.current.applicationContext as Application)
+    )
 ) {
+    val favorites by viewModel.favoriteTorrents.collectAsState()
+    val favoriteIds = remember(favorites) { favorites.map { it.id }.toSet() }
     var isInitialQueryProcessed by rememberSaveable(initialQuery) { mutableStateOf(false) }
     var showSearchDialog by remember { mutableStateOf(false) }
     val isFilterActive = viewModel.searchQuery.isNotEmpty() ||
@@ -96,6 +102,7 @@ fun HomeScreen(
                 }
             )
         },
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { showSearchDialog = true },
@@ -155,6 +162,10 @@ fun HomeScreen(
                         } else {
                             TorrentList(
                                 torrents = state.torrents,
+                                favoriteIds = favoriteIds,
+                                onToggleFavorite = { torrent ->
+                                    viewModel.toggleFavorite(torrent, favoriteIds.contains(torrent.id))
+                                },
                                 currentPage = viewModel.currentPage,
                                 onTorrentClick = onTorrentClick,
                                 onNext = { viewModel.nextPage() },
