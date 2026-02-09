@@ -120,6 +120,7 @@ object NyaaHtmlParser {
 
         return TorrentDetail(
             title = doc.select("h3.panel-title").first()?.text()?.replace("File details", "")?.trim() ?: "Inconnu",
+            category = getRowData("Category"),
             magnetLink = doc.select("a[href^=magnet:]").attr("href"),
             torrentFile = doc.select("a[href$=.torrent]").attr("href"),
             descriptionHtml = doc.select("#torrent-description").html(),

@@ -42,7 +42,7 @@ android {
     }
 }
 
-val roomVersion = "2.6.1"
+val roomVersion = "2.8.4"
 
 dependencies {
     implementation(libs.androidx.core.ktx)
@@ -60,6 +60,7 @@ dependencies {
     implementation(libs.androidx.constraintlayout)
     implementation(libs.androidx.compose.runtime)
     implementation(libs.androidx.material3)
+    implementation(libs.androidx.foundation)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

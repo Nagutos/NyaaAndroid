@@ -13,26 +13,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.nagutos.nyaaandroid.data.local.entity.FavoriteTorrent
-import com.nagutos.nyaaandroid.model.TorrentUI
 import com.nagutos.nyaaandroid.ui.components.TorrentItem
+import com.nagutos.nyaaandroid.ui.components.toTorrentUI
 import com.nagutos.nyaaandroid.ui.screens.home.HomeViewModel
 import com.nagutos.nyaaandroid.ui.screens.home.HomeViewModelFactory
 
-fun FavoriteTorrent.toTorrentUI(): TorrentUI {
-    return TorrentUI(
-        id = this.id,
-        title = this.title,
-        category = this.category,
-        size = this.size,
-        date = this.date,
-        seeders = this.seeders.toIntOrNull() ?: 0,
-        leechers = this.leechers.toIntOrNull() ?: 0,
-        downloads = 0,
-        linkUrl = "",
-        detailUrl = this.detailUrl
-    )
-}
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FavoritesScreen(

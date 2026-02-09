@@ -7,6 +7,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material3.*
@@ -28,11 +29,20 @@ import com.nagutos.nyaaandroid.ui.components.FileNodeItem
 import com.nagutos.nyaaandroid.ui.components.NyaaMarkdownEngine
 import com.nagutos.nyaaandroid.ui.components.StatBox
 import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.navigation.NavController
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import java.net.URLEncoder
 import com.nagutos.nyaaandroid.ui.components.CommentItem
 import com.nagutos.nyaaandroid.ui.screens.home.HomeViewModelFactory
+import com.nagutos.nyaaandroid.ui.components.toTorrentUI
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -43,6 +53,13 @@ fun DetailScreen(
         factory = HomeViewModelFactory(LocalContext.current.applicationContext as Application)
     )
 ) {
+
+
+
+    val favorites by viewModel.favoriteTorrents.collectAsState()
+    val currentId = remember(url) { url.substringAfterLast("/") }
+    val isFavorite = favorites.any { it.id == currentId }
+
     LaunchedEffect(url) {
         viewModel.loadDetail(url)
     }
@@ -51,6 +68,11 @@ fun DetailScreen(
         topBar = {
             TopAppBar(
                 title = { Text("Détails du Torrent", style = MaterialTheme.typography.titleMedium) },
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Retour")
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
@@ -82,7 +104,16 @@ fun DetailScreen(
                     }
                 }
                 is DetailUiState.Success -> {
-                    TorrentDetailView(detail = state.detail, navController = navController)
+                    TorrentDetailView(
+                        detail = state.detail,
+                        navController = navController,
+                        isFavorite = isFavorite,
+                        url = url,
+                        onToggleFavorite = {
+                            val torrentUI = state.detail.toTorrentUI(currentId, url)
+                            viewModel.toggleFavorite(torrentUI, isFavorite)
+                        }
+                    )
                 }
             }
         }
@@ -90,9 +121,14 @@ fun DetailScreen(
 }
 
 @Composable
-fun TorrentDetailView(detail: TorrentDetail, navController: NavController) {
+fun TorrentDetailView(
+        detail: TorrentDetail,
+        navController: NavController,
+        url: String,
+        isFavorite: Boolean,
+        onToggleFavorite: () -> Unit) {
     val context = LocalContext.current
-    val contentColor = MaterialTheme.colorScheme.onSurface.toArgb()
+
     LazyColumn(
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -138,7 +174,7 @@ fun TorrentDetailView(detail: TorrentDetail, navController: NavController) {
                 }
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Grille de statistiques (Taille, Seed, Leech, Complété)
+                // Stats (Taille, Seed, Leech, Complété)
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
@@ -167,7 +203,7 @@ fun TorrentDetailView(detail: TorrentDetail, navController: NavController) {
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Info Hash (Plus discret)
+                // Info Hash
                 Card(
                     colors = CardDefaults.cardColors(
                         containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(
@@ -187,22 +223,59 @@ fun TorrentDetailView(detail: TorrentDetail, navController: NavController) {
             }
         }
 
-        // --- MAGNET BUTTON ---
+        // --- MAGNET, FAV and SHARE BUTTON ---
         item {
-            Button(
-                onClick = {
-                    try {
-                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(detail.magnetLink))
-                        context.startActivity(intent)
-                    } catch (_: Exception) {
-                    }
-                },
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1EA2E9))
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp), // Espace entre les boutons
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(Icons.Default.Download, contentDescription = null)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Ouvrir le Magnet")
+                Button(
+                    onClick = {
+                        try {
+                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(detail.magnetLink))
+                            context.startActivity(intent)
+                        } catch (_: Exception) {
+                        }
+                    },
+                    modifier = Modifier.weight(1f),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1EA2E9)),
+                    shape = RoundedCornerShape(12.dp),
+                    contentPadding = PaddingValues(vertical = 12.dp)
+                ) {
+                    Icon(Icons.Default.Download, contentDescription = null)
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text("Ouvrir le Magnet")
+                }
+                FilledTonalIconButton(
+                    onClick = onToggleFavorite,
+                    modifier = Modifier.size(52.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = IconButtonDefaults.filledTonalIconButtonColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant
+                    )
+                ) {
+                    Icon(
+                        imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                        contentDescription = "Favori",
+                        tint = if (isFavorite) Color(0xFFE91E63) else MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                IconButton(
+                    onClick = {
+                        val sendIntent = Intent().apply {
+                            action = Intent.ACTION_SEND
+                            putExtra(Intent.EXTRA_TEXT, "Regarde ce torrent : ${detail.title}\n\nLien : https://nyaa.si$url")
+                            type = "text/plain"
+                        }
+                        val shareIntent = Intent.createChooser(sendIntent, null)
+                        context.startActivity(shareIntent)
+                    }
+                ) {
+                    Icon(Icons.Default.Share, contentDescription = "Partager", tint = Color.Gray)
+                }
             }
         }
 
