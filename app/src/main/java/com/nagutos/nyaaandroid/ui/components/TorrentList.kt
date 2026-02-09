@@ -33,7 +33,9 @@ fun TorrentList(
     currentPage: Int,
     onTorrentClick: (String) -> Unit,
     onNext: () -> Unit,
-    onPrevious: () -> Unit
+    onPrevious: () -> Unit,
+    favoriteIds: Set<String>,
+    onToggleFavorite: (TorrentUI) -> Unit
 ) {
     val listState = rememberLazyListState()
 
@@ -47,7 +49,13 @@ fun TorrentList(
             items = torrents,
             key = { it.id }
         ) { torrent ->
-            TorrentItem(torrent = torrent, onClick = { onTorrentClick(torrent.detailUrl) })
+            val isFav = favoriteIds.contains(torrent.id)
+            TorrentItem(
+                torrent = torrent,
+                isFavorite = isFav,
+                onToggleFavorite = { onToggleFavorite(torrent) },
+                onClick = { onTorrentClick(torrent.detailUrl) }
+            )
         }
 
         item {

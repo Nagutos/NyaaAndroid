@@ -1,5 +1,7 @@
 package com.nagutos.nyaaandroid.ui.screens.home
 
+import android.app.Application
+import androidx.activity.compose.BackHandler
 import com.nagutos.nyaaandroid.ui.components.AdvancedSearchDialog
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
@@ -15,6 +17,11 @@ import androidx.navigation.NavController
 import com.nagutos.nyaaandroid.ui.components.ErrorView
 import com.nagutos.nyaaandroid.ui.components.EmptyStateView
 import com.nagutos.nyaaandroid.ui.components.TorrentList
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.platform.LocalContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -23,17 +30,39 @@ fun HomeScreen(
     onSettingsClick: () -> Unit,
     navController: NavController,
     initialQuery: String = "",
-    viewModel: HomeViewModel = viewModel()
+    viewModel: HomeViewModel = viewModel(
+        factory = HomeViewModelFactory(LocalContext.current.applicationContext as Application)
+    )
 ) {
+    val favorites by viewModel.favoriteTorrents.collectAsState()
+    val favoriteIds = remember(favorites) { favorites.map { it.id }.toSet() }
+    var isInitialQueryProcessed by rememberSaveable(initialQuery) { mutableStateOf(false) }
     var showSearchDialog by remember { mutableStateOf(false) }
+    val isFilterActive = viewModel.searchQuery.isNotEmpty() ||
+            viewModel.searchUser != null ||
+            viewModel.searchCategory != "0_0" ||
+            viewModel.currentPage > 1
+
     LaunchedEffect(initialQuery) {
-        if (initialQuery.startsWith("user:")) {
-            val username = initialQuery.removePrefix("user:")
-            viewModel.onUserSearch(username)
-        } else if (initialQuery.isNotEmpty()) {
-            viewModel.onSearch(initialQuery, viewModel.searchCategory)
+        if (initialQuery.isNotEmpty() && !isInitialQueryProcessed) {
+            if (initialQuery.startsWith("user:")) {
+                val username = initialQuery.removePrefix("user:")
+                viewModel.onUserSearch(username)
+            } else {
+                viewModel.onSearch(initialQuery, viewModel.searchCategory)
+            }
+            isInitialQueryProcessed = true
+            navController.currentBackStackEntry?.arguments?.putString("query", "")
         }
     }
+
+    BackHandler(enabled = isFilterActive) {
+        // Reset the filter when the back button is pressed
+        viewModel.onSearch("", "0_0")
+    }
+
+    val state = rememberPullToRefreshState()
+    val isRefreshing = viewModel.uiState is HomeUiState.Loading
     Scaffold(
         topBar = {
             TopAppBar(
@@ -73,6 +102,7 @@ fun HomeScreen(
                 }
             )
         },
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { showSearchDialog = true },
@@ -83,40 +113,65 @@ fun HomeScreen(
         }
     ) { innerPadding ->
 
-        if (showSearchDialog) {
-            AdvancedSearchDialog(
-                initialQuery = viewModel.searchQuery,
-                initialCategory = viewModel.searchCategory,
-                onDismiss = { showSearchDialog = false },
-                onSearch = { query, category ->
-                    viewModel.onSearch(query, category)
-                    showSearchDialog = false
+        PullToRefreshBox(
+            isRefreshing = isRefreshing,
+            onRefresh = { viewModel.loadTorrents() },
+            state = state,
+            indicator = {
+                PullToRefreshDefaults.Indicator(
+                    state = state,
+                    isRefreshing = isRefreshing,
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.align(Alignment.TopCenter)
+                )
+            },
+            modifier = Modifier
+                .padding(innerPadding) // On applique le padding ici
+                .fillMaxSize()
+        ) {
+            Box(modifier = Modifier.fillMaxSize()) {
+
+                if (showSearchDialog) {
+                    AdvancedSearchDialog(
+                        initialQuery = viewModel.searchQuery,
+                        initialCategory = viewModel.searchCategory,
+                        onDismiss = { showSearchDialog = false },
+                        onSearch = { query, category ->
+                            viewModel.onSearch(query, category)
+                            showSearchDialog = false
+                        }
+                    )
                 }
-            )
-        }
 
-        Box(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
-            when (val state = viewModel.uiState) {
-                is HomeUiState.Loading -> CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                when (val state = viewModel.uiState) {
+                    is HomeUiState.Loading -> {
 
-                is HomeUiState.Error -> {
-                    ErrorView(message = state.message, onRetry = { viewModel.loadTorrents() })
-                }
+                    }
 
-                is HomeUiState.Success -> {
-                    if (state.torrents.isEmpty()) {
-                        EmptyStateView(
-                            page = viewModel.currentPage,
-                            onGoBack = { viewModel.previousPage() }
-                        )
-                    } else {
-                        TorrentList(
-                            torrents = state.torrents,
-                            currentPage = viewModel.currentPage,
-                            onTorrentClick = onTorrentClick,
-                            onNext = { viewModel.nextPage() },
-                            onPrevious = { viewModel.previousPage() }
-                        )
+                    is HomeUiState.Error -> {
+                        ErrorView(message = state.message, onRetry = { viewModel.loadTorrents() })
+                    }
+
+                    is HomeUiState.Success -> {
+                        if (state.torrents.isEmpty()) {
+                            EmptyStateView(
+                                page = viewModel.currentPage,
+                                onGoBack = { viewModel.previousPage() }
+                            )
+                        } else {
+                            TorrentList(
+                                torrents = state.torrents,
+                                favoriteIds = favoriteIds,
+                                onToggleFavorite = { torrent ->
+                                    viewModel.toggleFavorite(torrent, favoriteIds.contains(torrent.id))
+                                },
+                                currentPage = viewModel.currentPage,
+                                onTorrentClick = onTorrentClick,
+                                onNext = { viewModel.nextPage() },
+                                onPrevious = { viewModel.previousPage() }
+                            )
+                        }
                     }
                 }
             }

@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    id("com.google.devtools.ksp")
 }
 
 android {
@@ -41,6 +42,8 @@ android {
     }
 }
 
+val roomVersion = "2.6.1"
+
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -53,6 +56,10 @@ dependencies {
     implementation(libs.androidx.compose.foundation)
     implementation(libs.androidx.media3.exoplayer)
     implementation(libs.androidx.room.external.antlr)
+    implementation(libs.androidx.room.common.jvm)
+    implementation(libs.androidx.constraintlayout)
+    implementation(libs.androidx.compose.runtime)
+    implementation(libs.androidx.material3)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -81,4 +88,8 @@ dependencies {
     implementation("io.noties.markwon:image-coil:4.6.2")
     implementation("io.coil-kt:coil:2.4.0")
     implementation("io.coil-kt:coil-gif:2.4.0")
+
+    implementation("androidx.room:room-runtime:$roomVersion")
+    implementation("androidx.room:room-ktx:$roomVersion")
+    ksp("androidx.room:room-compiler:$roomVersion")
 }
