@@ -38,6 +38,7 @@ fun HomeScreen(
     val favoriteIds = remember(favorites) { favorites.map { it.id }.toSet() }
     var isInitialQueryProcessed by rememberSaveable(initialQuery) { mutableStateOf(false) }
     var showSearchDialog by remember { mutableStateOf(false) }
+    val savedSearches by viewModel.savedSearches.collectAsState()
     val isFilterActive = viewModel.searchQuery.isNotEmpty() ||
             viewModel.searchUser != null ||
             viewModel.searchCategory != "0_0" ||
@@ -136,10 +137,19 @@ fun HomeScreen(
                     AdvancedSearchDialog(
                         initialQuery = viewModel.searchQuery,
                         initialCategory = viewModel.searchCategory,
+                        initialSort = viewModel.searchSort,
+                        initialOrder = viewModel.searchOrder,
+                        savedSearches = savedSearches,
                         onDismiss = { showSearchDialog = false },
-                        onSearch = { query, category ->
-                            viewModel.onSearch(query, category)
+                        onSearch = { query, category, sort, order ->
+                            viewModel.onSearch(query, category, sort, order)
                             showSearchDialog = false
+                        },
+                        onSaveSearch = { label, query, category, sort, order ->
+                            viewModel.saveCurrentSearch(label, query, category, sort, order)
+                        },
+                        onDeleteSearch = { search ->
+                            viewModel.deleteSavedSearch(search)
                         }
                     )
                 }

@@ -3,11 +3,16 @@ package com.nagutos.nyaaandroid.data.repository
 import kotlinx.coroutines.flow.Flow
 import com.nagutos.nyaaandroid.data.local.entity.FavoriteDao
 import com.nagutos.nyaaandroid.data.local.entity.FavoriteTorrent
+import com.nagutos.nyaaandroid.data.local.entity.SavedSearch
+import com.nagutos.nyaaandroid.data.local.entity.SavedSearchDao
 import com.nagutos.nyaaandroid.model.TorrentUI
 
-class FavoriteRepository(private val favoriteDao: FavoriteDao) {
+class FavoriteRepository(private val favoriteDao: FavoriteDao,
+                         private val savedSearchDao: SavedSearchDao){
 
-    val allFavorites: Flow<List<FavoriteTorrent>> = favoriteDao.getAllFavorites()
+    val allFavorites = favoriteDao.getAllFavorites()
+
+    val allSavedSearches = savedSearchDao.getAllSavedSearches()
 
     fun isFavorite(torrentId: String): Flow<Boolean> = favoriteDao.isFavorite(torrentId)
 
@@ -34,5 +39,13 @@ class FavoriteRepository(private val favoriteDao: FavoriteDao) {
         // Pour supprimer, Room a besoin de l'objet complet ou d'une requête spécifique.
         // On va simplifier avec une requête directe dans le DAO plus tard ou utiliser celle-ci :
         // favoriteDao.deleteById(torrentId) -> à ajouter dans le DAO si besoin
+    }
+
+    suspend fun insertSavedSearch(search: SavedSearch) {
+        savedSearchDao.insertSearch(search)
+    }
+
+    suspend fun deleteSavedSearch(search: SavedSearch) {
+        savedSearchDao.deleteSearch(search)
     }
 }

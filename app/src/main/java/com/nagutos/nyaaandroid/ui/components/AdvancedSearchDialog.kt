@@ -1,35 +1,63 @@
 package com.nagutos.nyaaandroid.ui.components
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowDownward
+import androidx.compose.material.icons.filled.ArrowUpward
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.InputChip
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.material3.MenuAnchorType
+import androidx.compose.ui.Alignment
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.nagutos.nyaaandroid.data.local.entity.SavedSearch
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdvancedSearchDialog(
     initialQuery: String,
     initialCategory: String,
+    initialSort: String,
+    initialOrder: String,
+    savedSearches: List<SavedSearch>,
     onDismiss: () -> Unit,
-    onSearch: (String, String) -> Unit
+    onSearch: (String, String, String, String) -> Unit,
+    onSaveSearch: (String, String, String, String, String) -> Unit,
+    onDeleteSearch: (SavedSearch) -> Unit
 ) {
     var query by remember { mutableStateOf(initialQuery) }
+    var showSaveLabelDialog by remember { mutableStateOf(false) }
+    var filterLabel by remember { mutableStateOf("") }
 
     val categories = listOf(
         "Toutes les catégories" to "0_0",
@@ -70,9 +98,30 @@ fun AdvancedSearchDialog(
         "Software - Games" to "6_2"
     )
 
+    val sortOptions = listOf(
+        "Date" to "id",
+        "Taille" to "size",
+        "Seeders" to "seeders",
+        "Leechers" to "leechers",
+        "Complétés" to "downloads"
+    )
+
+    val orderOptions = listOf(
+        "Décroissant" to "desc",
+        "Croissant" to "asc"
+    )
+
+    var selectedSort by remember { mutableStateOf(sortOptions.find { it.second == initialSort } ?: sortOptions[0]) }
+    var selectedOrder by remember { mutableStateOf(orderOptions.find { it.second == initialOrder } ?: orderOptions[0]) }
+
+    var isDescending by remember { mutableStateOf(initialOrder == "desc") }
+
     var selectedCategoryPair by remember {
         mutableStateOf(categories.find { it.second == initialCategory } ?: categories.first())
     }
+
+    var sortExpanded by remember { mutableStateOf(false) }
+    var orderExpanded by remember { mutableStateOf(false) }
 
     var expanded by remember { mutableStateOf(false) }
 
@@ -121,10 +170,103 @@ fun AdvancedSearchDialog(
                         }
                     }
                 }
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        text = if (isDescending) "Tri : Décroissant (Plus grand au plus petit)"
+                        else "Tri : Croissant (Plus petit au plus grand)",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        ExposedDropdownMenuBox(
+                            expanded = sortExpanded,
+                            onExpandedChange = { sortExpanded = !sortExpanded },
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            OutlinedTextField(
+                                value = selectedSort.first,
+                                onValueChange = {},
+                                readOnly = true,
+                                label = { Text("Trier par") },
+                                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = sortExpanded) },
+                                modifier = Modifier.menuAnchor(type = MenuAnchorType.PrimaryNotEditable, enabled = true)
+                            )
+                            ExposedDropdownMenu(expanded = sortExpanded, onDismissRequest = { sortExpanded = false }) {
+                                sortOptions.forEach { option ->
+                                    DropdownMenuItem(
+                                        text = { Text(option.first) },
+                                        onClick = {
+                                            selectedSort = option
+                                            sortExpanded = false
+                                        }
+                                    )
+                                }
+                            }
+                        }
+
+                        // Le Bouton Flèche (Toggle Asc/Desc)
+                        FilledTonalIconButton(
+                            onClick = { isDescending = !isDescending },
+                            modifier = Modifier.size(56.dp), // Même hauteur que le TextField
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Icon(
+                                imageVector = if (isDescending) Icons.Default.ArrowDownward
+                                else Icons.Default.ArrowUpward,
+                                contentDescription = "Changer l'ordre"
+                            )
+                        }
+                    }
+                }
+                if (savedSearches.isNotEmpty()) {
+                    Text("Mes filtres rapides", style = MaterialTheme.typography.labelMedium)
+                    LazyRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        items(savedSearches.size) { index ->
+                            val saved = savedSearches[index]
+                            InputChip(
+                                selected = false,
+                                onClick = {
+                                    query = saved.query
+                                    selectedCategoryPair = categories.find { it.second == saved.category } ?: categories.first()
+                                },
+                                label = { Text(saved.label) },
+                                trailingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Default.Close,
+                                        contentDescription = "Supprimer",
+                                        modifier = Modifier
+                                            .size(18.dp)
+                                            .clickable { onDeleteSearch(saved) }
+                                    )
+                                },
+                                shape = RoundedCornerShape(8.dp)
+                            )
+                        }
+                    }
+                }
+                TextButton(
+                    onClick = { showSaveLabelDialog = true },
+                    enabled = query.isNotEmpty()
+                ) {
+                    Icon(Icons.Default.Add, contentDescription = null)
+                    Spacer(Modifier.width(8.dp))
+                    Text("Enregistrer ces filtres")
+                }
             }
         },
         confirmButton = {
-            Button(onClick = { onSearch(query, selectedCategoryPair.second) }) {
+            Button(onClick = {
+                val orderString = if (isDescending) "desc" else "asc"
+                onSearch(query, selectedCategoryPair.second, selectedSort.second, orderString)
+            }) {
                 Text("Rechercher")
             }
         },
@@ -134,4 +276,26 @@ fun AdvancedSearchDialog(
             }
         }
     )
+    if (showSaveLabelDialog) {
+        AlertDialog(
+            onDismissRequest = { showSaveLabelDialog = false },
+            title = { Text("Nommer ce filtre") },
+            text = {
+                OutlinedTextField(
+                    value = filterLabel,
+                    onValueChange = { filterLabel = it },
+                    label = { Text("Nom (ex: Anime VOSTFR)") },
+                    singleLine = true
+                )
+            },
+            confirmButton = {
+                Button(onClick = { onSearch(query, selectedCategoryPair.second, selectedSort.second, selectedOrder.second) }) {
+                    Text("Rechercher")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showSaveLabelDialog = false }) { Text("Annuler") }
+            }
+        )
+    }
 }

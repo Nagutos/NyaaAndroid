@@ -5,10 +5,11 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 
-@Database(entities = [FavoriteTorrent::class], version = 1)
+@Database(entities = [FavoriteTorrent::class, SavedSearch::class], version = 3, exportSchema = false)
 abstract class NyaaDatabase : RoomDatabase() {
     abstract fun favoriteDao(): FavoriteDao
 
+    abstract fun savedSearchDao(): SavedSearchDao
     companion object {
         @Volatile
         private var INSTANCE: NyaaDatabase? = null
@@ -19,7 +20,8 @@ abstract class NyaaDatabase : RoomDatabase() {
                     context.applicationContext,
                     NyaaDatabase::class.java,
                     "nyaa_database"
-                ).build()
+                ).fallbackToDestructiveMigration()
+                .build()
                 INSTANCE = instance
                 instance
             }

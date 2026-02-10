@@ -9,10 +9,13 @@ import retrofit2.http.Url
 interface NyaaApiService {
     @GET("/")
     suspend fun getTorrentsHtml(
-        @Query("q") query: String = "",
+        @Query("f") filter: Int = 0,
         @Query("c") category: String = "0_0",
+        @Query("q") query: String = "",
         @Query("p") page: Int = 1,
-        @Query("u") user: String? = null
+        @Query("u") user: String? = null,
+        @Query("s") sort: String? = null,
+        @Query("o") order: String? = null
     ): ResponseBody
     @GET
     suspend fun getTorrentDetailHtml(@Url url: String): ResponseBody

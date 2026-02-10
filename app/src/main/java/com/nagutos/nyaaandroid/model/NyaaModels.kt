@@ -16,6 +16,7 @@ data class TorrentUI(
 
 data class TorrentDetail(
     val title: String,
+    val category: String,
     val magnetLink: String,
     val torrentFile: String,
     val descriptionHtml: String,
