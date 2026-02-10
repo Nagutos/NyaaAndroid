@@ -8,6 +8,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.nagutos.nyaaandroid.data.local.entity.FavoriteTorrent
 import com.nagutos.nyaaandroid.data.local.entity.NyaaDatabase
+import com.nagutos.nyaaandroid.data.local.entity.SavedSearch
 import com.nagutos.nyaaandroid.data.repository.FavoriteRepository
 import com.nagutos.nyaaandroid.model.TorrentDetail
 import com.nagutos.nyaaandroid.model.TorrentUI
@@ -33,7 +34,7 @@ sealed interface DetailUiState {
     data class Error(val message: String) : DetailUiState
 }
 
-class HomeViewModel(application: Application) : AndroidViewModel(application) {
+class HomeViewModel(application: Application) : AndroidViewModel(application){
 
     var uiState: HomeUiState by mutableStateOf(HomeUiState.Loading)
         private set
@@ -53,8 +54,11 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     var searchUser by mutableStateOf<String?>(null)
         private set
 
-    private val database = NyaaDatabase.getDatabase(getApplication())
-    private val repository = FavoriteRepository(database.favoriteDao())
+    private val database = NyaaDatabase.getDatabase(application)
+    private val repository = FavoriteRepository(
+        database.favoriteDao(),
+        database.savedSearchDao()
+    )
 
     val favoriteTorrents: StateFlow<List<FavoriteTorrent>> = repository.allFavorites
         .stateIn(
@@ -63,11 +67,15 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
             initialValue = emptyList()
         )
 
+    val savedSearches = repository.allSavedSearches.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = emptyList()
+    )
+
     init {
         loadTorrents()
     }
-
-
 
     fun onSearch(query: String, category: String) {
         this.searchUser = null
@@ -75,6 +83,20 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         this.searchCategory = category
         this.currentPage = 1
         loadTorrents()
+    }
+
+    fun saveCurrentSearch(label: String, query: String, category: String) {
+        viewModelScope.launch {
+            repository.insertSavedSearch(
+                SavedSearch(label = label, query = query, category = category)
+            )
+        }
+    }
+
+    fun deleteSavedSearch(search: SavedSearch) {
+        viewModelScope.launch {
+            repository.deleteSavedSearch(search)
+        }
     }
 
     fun onUserSearch(username: String) {

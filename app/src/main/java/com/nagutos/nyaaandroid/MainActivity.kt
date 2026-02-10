@@ -8,6 +8,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.*
 import androidx.compose.runtime.collectAsState
@@ -66,12 +67,15 @@ class MainActivity : ComponentActivity() {
             ) {
                 Scaffold(
                     bottomBar = {
-                        val isMainScreen = mainScreens.any { it.route == currentDestination?.route?.split("?")?.first() }
+                        val isMainScreen = mainScreens.any {
+                            it.route == currentDestination?.route?.split("?")?.first()
+                        }
 
                         if (isMainScreen) {
                             NavigationBar(
                                 containerColor = MaterialTheme.colorScheme.surface,
-                                tonalElevation = 8.dp) {
+                                tonalElevation = 8.dp
+                            ) {
                                 mainScreens.forEach { screen ->
                                     NavigationBarItem(
                                         icon = {
@@ -88,7 +92,11 @@ class MainActivity : ComponentActivity() {
                                             }
                                         },
                                         label = { Text(screen.label) },
-                                        selected = currentDestination?.hierarchy?.any { it.route?.startsWith(screen.route) == true } == true,
+                                        selected = currentDestination?.hierarchy?.any {
+                                            it.route?.startsWith(
+                                                screen.route
+                                            ) == true
+                                        } == true,
                                         colors = NavigationBarItemDefaults.colors(
                                             selectedIconColor = MaterialTheme.colorScheme.primary,
                                             selectedTextColor = MaterialTheme.colorScheme.primary,
@@ -111,64 +119,72 @@ class MainActivity : ComponentActivity() {
                         }
                     }
                 ) { innerPadding ->
-                    NavHost(
-                        navController = navController,
-                        startDestination = Screen.Search.route,
-                        modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding()),
-                        enterTransition = { fadeIn(animationSpec = tween(300)) },
-                        exitTransition = { fadeOut(animationSpec = tween(300)) }
-                    ){
-                        // --- Home ---
-                        composable(
-                            route = Screen.Search.route + "?query={query}",
-                            arguments = listOf(
-                                navArgument("query") {
-                                    defaultValue = ""
-                                    type = NavType.StringType
-                                }
-                            )
-                        ) { backStackEntry ->
-                            val query = backStackEntry.arguments?.getString("query") ?: ""
-                            HomeScreen(
-                                navController = navController,
-                                initialQuery = query,
-                                onTorrentClick = { url ->
-                                    val encodedUrl = URLEncoder.encode(url, "UTF-8")
-                                    navController.navigate("detail/$encodedUrl")
-                                },
-                                onSettingsClick = {
-                                    navController.navigate("settings")
-                                }
-                            )
-                        }
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(bottom = innerPadding.calculateBottomPadding()),
+                        color = MaterialTheme.colorScheme.background
+                    ) {
+                        NavHost(
+                            navController = navController,
+                            startDestination = Screen.Search.route,
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            // --- Home ---
+                            composable(
+                                route = Screen.Search.route + "?query={query}",
+                                arguments = listOf(
+                                    navArgument("query") {
+                                        defaultValue = ""
+                                        type = NavType.StringType
+                                    }
+                                )
+                            ) { backStackEntry ->
+                                val query = backStackEntry.arguments?.getString("query") ?: ""
+                                HomeScreen(
+                                    navController = navController,
+                                    initialQuery = query,
+                                    onTorrentClick = { url ->
+                                        val encodedUrl = URLEncoder.encode(url, "UTF-8")
+                                        navController.navigate("detail/$encodedUrl")
+                                    },
+                                    onSettingsClick = {
+                                        navController.navigate("settings")
+                                    }
+                                )
+                            }
 
-                        // --- Favorite Screen ---
-                        composable(Screen.Favorites.route) {
-                            FavoritesScreen(
-                                navController = navController,
-                                onTorrentClick = { url ->
-                                    val encodedUrl = URLEncoder.encode(url, "UTF-8")
-                                    navController.navigate("detail/$encodedUrl")
-                                }
-                            )
-                        }
+                            // --- Favorite Screen ---
+                            composable(Screen.Favorites.route) {
+                                FavoritesScreen(
+                                    navController = navController,
+                                    onTorrentClick = { url ->
+                                        val encodedUrl = URLEncoder.encode(url, "UTF-8")
+                                        navController.navigate("detail/$encodedUrl")
+                                    },
+                                    onSettingsClick = {
+                                        navController.navigate("settings")
+                                    }
+                                )
+                            }
 
-                        // --- Details Screen ---
-                        composable("detail/{url}") { backStackEntry ->
-                            val url = backStackEntry.arguments?.getString("url") ?: ""
-                            DetailScreen(
-                                url = url,
-                                navController = navController
-                            )
-                        }
+                            // --- Details Screen ---
+                            composable("detail/{url}") { backStackEntry ->
+                                val url = backStackEntry.arguments?.getString("url") ?: ""
+                                DetailScreen(
+                                    url = url,
+                                    navController = navController
+                                )
+                            }
 
-                        // --- ÉCRAN PARAMÈTRES ---
-                        composable("settings") {
-                            SettingsScreen(
-                                currentTheme = currentTheme,
-                                themePreferences = themePreferences,
-                                onBack = { navController.popBackStack() }
-                            )
+                            // --- ÉCRAN PARAMÈTRES ---
+                            composable("settings") {
+                                SettingsScreen(
+                                    currentTheme = currentTheme,
+                                    themePreferences = themePreferences,
+                                    onBack = { navController.popBackStack() }
+                                )
+                            }
                         }
                     }
                 }

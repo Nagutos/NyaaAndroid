@@ -1,35 +1,52 @@
 package com.nagutos.nyaaandroid.ui.components
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.InputChip
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.material3.MenuAnchorType
+import androidx.compose.material3.SuggestionChip
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdvancedSearchDialog(
     initialQuery: String,
     initialCategory: String,
+    savedSearches: List<com.nagutos.nyaaandroid.data.local.entity.SavedSearch>,
     onDismiss: () -> Unit,
-    onSearch: (String, String) -> Unit
+    onSearch: (String, String) -> Unit,
+    onSaveSearch: (String, String, String) -> Unit,
+    onDeleteSearch: (com.nagutos.nyaaandroid.data.local.entity.SavedSearch) -> Unit
 ) {
     var query by remember { mutableStateOf(initialQuery) }
+    var showSaveLabelDialog by remember { mutableStateOf(false) }
+    var filterLabel by remember { mutableStateOf("") }
 
     val categories = listOf(
         "Toutes les catégories" to "0_0",
@@ -121,6 +138,44 @@ fun AdvancedSearchDialog(
                         }
                     }
                 }
+                if (savedSearches.isNotEmpty()) {
+                    Text("Mes filtres rapides", style = MaterialTheme.typography.labelMedium)
+                    androidx.compose.foundation.lazy.LazyRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        items(savedSearches.size) { index ->
+                            val saved = savedSearches[index]
+                            InputChip(
+                                selected = false,
+                                onClick = {
+                                    query = saved.query
+                                    selectedCategoryPair = categories.find { it.second == saved.category } ?: categories.first()
+                                },
+                                label = { Text(saved.label) },
+                                // La petite croix de suppression
+                                trailingIcon = {
+                                    Icon(
+                                        imageVector = androidx.compose.material.icons.Icons.Default.Close,
+                                        contentDescription = "Supprimer",
+                                        modifier = Modifier
+                                            .size(18.dp)
+                                            .clickable { onDeleteSearch(saved) }
+                                    )
+                                },
+                                shape = RoundedCornerShape(8.dp)
+                            )
+                        }
+                    }
+                }
+                TextButton(
+                    onClick = { showSaveLabelDialog = true },
+                    enabled = query.isNotEmpty()
+                ) {
+                    Icon(androidx.compose.material.icons.Icons.Default.Add, contentDescription = null)
+                    Spacer(Modifier.width(8.dp))
+                    Text("Enregistrer ces filtres")
+                }
             }
         },
         confirmButton = {
@@ -134,4 +189,28 @@ fun AdvancedSearchDialog(
             }
         }
     )
+    if (showSaveLabelDialog) {
+        AlertDialog(
+            onDismissRequest = { showSaveLabelDialog = false },
+            title = { Text("Nommer ce filtre") },
+            text = {
+                OutlinedTextField(
+                    value = filterLabel,
+                    onValueChange = { filterLabel = it },
+                    label = { Text("Nom (ex: Anime VOSTFR)") },
+                    singleLine = true
+                )
+            },
+            confirmButton = {
+                Button(onClick = {
+                    onSaveSearch(filterLabel, query, selectedCategoryPair.second)
+                    showSaveLabelDialog = false
+                    filterLabel = ""
+                }) { Text("Sauvegarder") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showSaveLabelDialog = false }) { Text("Annuler") }
+            }
+        )
+    }
 }
