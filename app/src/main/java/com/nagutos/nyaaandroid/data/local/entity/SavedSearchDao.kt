@@ -15,6 +15,8 @@ data class SavedSearch(
     val label: String,      // Name given by the user (e.g. "Clean Anime")
     val query: String,      // The query (e.g. VOSTFR - "Tsundere-Raws")
     val category: String,   // The associated Nyaa category
+    val sort: String = "id", // The sorting option
+    val order: String = "desc", // The sorting order
     val createdAt: Long = System.currentTimeMillis()
 )
 

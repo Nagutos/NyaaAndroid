@@ -54,6 +54,12 @@ class HomeViewModel(application: Application) : AndroidViewModel(application){
     var searchUser by mutableStateOf<String?>(null)
         private set
 
+    var searchSort by mutableStateOf("id")
+        private set
+
+    var searchOrder by mutableStateOf("desc")
+        private set
+
     private val database = NyaaDatabase.getDatabase(application)
     private val repository = FavoriteRepository(
         database.favoriteDao(),
@@ -77,15 +83,23 @@ class HomeViewModel(application: Application) : AndroidViewModel(application){
         loadTorrents()
     }
 
-    fun onSearch(query: String, category: String) {
+    fun onSearch(query: String, category: String, sort: String = "id", order: String = "desc") {
         this.searchUser = null
         this.searchQuery = query
         this.searchCategory = category
+        this.searchSort = sort
+        this.searchOrder = order
         this.currentPage = 1
         loadTorrents()
     }
 
-    fun saveCurrentSearch(label: String, query: String, category: String) {
+    fun saveCurrentSearch(
+        label: String,
+        query: String,
+        category: String,
+        sort: String,
+        order: String
+    ) {
         viewModelScope.launch {
             repository.insertSavedSearch(
                 SavedSearch(label = label, query = query, category = category)
@@ -128,7 +142,6 @@ class HomeViewModel(application: Application) : AndroidViewModel(application){
         }
     }
 
-    // Pour vérifier si un torrent spécifique est favori (utile pour l'écran détail)
     fun isFavorite(torrentId: String): Flow<Boolean> = repository.isFavorite(torrentId)
 
 
@@ -141,7 +154,9 @@ class HomeViewModel(application: Application) : AndroidViewModel(application){
                         query = searchQuery,
                         category = searchCategory,
                         page = currentPage,
-                        user = searchUser
+                        user = searchUser,
+                        sort = searchSort,
+                        order = searchOrder
                     )
                     val htmlString = responseBody.string()
                     NyaaHtmlParser.parseTorrents(htmlString)
