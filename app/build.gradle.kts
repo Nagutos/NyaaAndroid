@@ -41,7 +41,6 @@ android {
         compose = true
     }
 }
-
 val roomVersion = "2.8.4"
 
 dependencies {
@@ -81,15 +80,12 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended")
     // --- Markdown ---
     implementation("io.noties.markwon:core:4.6.2")
-    implementation("io.noties.markwon:ext-tables:4.6.2")
     implementation("io.noties.markwon:ext-strikethrough:4.6.2")
-    implementation("io.noties.markwon:ext-tasklist:4.6.2")
+    implementation("io.noties.markwon:ext-tables:4.6.2")
     implementation("io.noties.markwon:html:4.6.2")
-    implementation("io.noties.markwon:linkify:4.6.2")
     implementation("io.noties.markwon:image-coil:4.6.2")
-    implementation("io.coil-kt:coil:2.4.0")
-    implementation("io.coil-kt:coil-gif:2.4.0")
-
+    implementation("io.noties.markwon:linkify:4.6.2")
+    // --- ROOM ---
     implementation("androidx.room:room-runtime:$roomVersion")
     implementation("androidx.room:room-ktx:$roomVersion")
     ksp("androidx.room:room-compiler:$roomVersion")

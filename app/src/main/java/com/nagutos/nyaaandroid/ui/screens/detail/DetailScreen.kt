@@ -16,7 +16,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -26,7 +25,6 @@ import com.nagutos.nyaaandroid.ui.screens.home.DetailUiState
 import com.nagutos.nyaaandroid.ui.screens.home.HomeViewModel
 import androidx.compose.material3.MaterialTheme
 import com.nagutos.nyaaandroid.ui.components.FileNodeItem
-import com.nagutos.nyaaandroid.ui.components.NyaaMarkdownEngine
 import com.nagutos.nyaaandroid.ui.components.StatBox
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -40,6 +38,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import java.net.URLEncoder
 import com.nagutos.nyaaandroid.ui.components.CommentItem
+import com.nagutos.nyaaandroid.ui.components.MarkdownText
 import com.nagutos.nyaaandroid.ui.screens.home.HomeViewModelFactory
 import com.nagutos.nyaaandroid.ui.components.toTorrentUI
 
@@ -53,8 +52,6 @@ fun DetailScreen(
         factory = HomeViewModelFactory(LocalContext.current.applicationContext as Application)
     )
 ) {
-
-
 
     val favorites by viewModel.favoriteTorrents.collectAsState()
     val currentId = remember(url) { url.substringAfterLast("/") }
@@ -147,7 +144,7 @@ fun TorrentDetailView(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // Ligne : Submitter et Date
+                // Ligne : Submitter and Date
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
                         Icons.Default.Person,
@@ -174,7 +171,7 @@ fun TorrentDetailView(
                 }
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Stats (Taille, Seed, Leech, Complété)
+                // Stats (Size, Seed, Leech, Completed)
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
@@ -288,9 +285,9 @@ fun TorrentDetailView(
             )
             Spacer(modifier = Modifier.height(8.dp))
 
-            NyaaMarkdownEngine(
-                rawMarkdown = detail.descriptionHtml,
-                modifier = Modifier.fillMaxWidth()
+            MarkdownText(
+                markdown = detail.descriptionHtml,
+                modifier = Modifier.padding(16.dp)
             )
         }
 

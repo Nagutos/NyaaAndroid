@@ -104,7 +104,6 @@ object NyaaHtmlParser {
     fun parseDetail(html: String): TorrentDetail {
         val doc = Jsoup.parse(html)
 
-        // Fonction utilitaire interne pour extraire le texte après un label spécifique
         fun getRowData(label: String): String {
             return doc.select("div:containsOwn($label) + div").first()?.text()?.trim() ?: ""
         }
@@ -118,12 +117,15 @@ object NyaaHtmlParser {
             Comment(user, date, content, avatarUrl)
         }
 
+        val element = doc.select("#torrent-description").first()
+        val descriptionRaw = element?.wholeText() ?: ""
+
         return TorrentDetail(
             title = doc.select("h3.panel-title").first()?.text()?.replace("File details", "")?.trim() ?: "Inconnu",
             category = getRowData("Category"),
             magnetLink = doc.select("a[href^=magnet:]").attr("href"),
             torrentFile = doc.select("a[href$=.torrent]").attr("href"),
-            descriptionHtml = doc.select("#torrent-description").html(),
+            descriptionHtml = descriptionRaw,
             infoHash = doc.select("kbd").first()?.text() ?: "",
             submitter = doc.select("a[href^=/user/]").first()?.text() ?: "Anonyme",
             date = getRowData("Date"),
