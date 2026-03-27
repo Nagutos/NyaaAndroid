@@ -47,8 +47,6 @@ Designed for speed, readability, and a seamless mobile experience.
 
 ## 📦 Installation
 
-> **Note**: This project is currently in active development.
-
 1. Clone the repository:
    ```bash
    git clone [https://github.com/Nagutos/NyaaAndroid.git](https://github.com/Nagutos/NyaaAndroid.git)
