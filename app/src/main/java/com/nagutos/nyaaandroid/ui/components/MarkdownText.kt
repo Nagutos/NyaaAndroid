@@ -44,7 +44,7 @@ import io.noties.markwon.linkify.LinkifyPlugin
 import coil.imageLoader
 import coil.request.Disposable
 import coil.request.ImageRequest
-import android.text.method.LinkMovementMethod
+import androidx.core.text.method.LinkMovementMethodCompat
 import android.text.style.ClickableSpan
 import io.noties.markwon.MarkwonConfiguration
 import io.noties.markwon.image.ImageSizeResolverDef
@@ -150,7 +150,11 @@ fun MarkdownText(
                     setTextColor(colorScheme.onSurface.toArgb())
                     setLinkTextColor(colorScheme.primary.toArgb())
                     textSize = 14f
-                    movementMethod = LinkMovementMethod.getInstance()
+                    // Selectable text (long-press copy) + reliable link clicks inside the
+                    // scrolling LazyColumn. LinkMovementMethodCompat fixes the touch-interception
+                    // bug the plain LinkMovementMethod has in Compose scrollable containers.
+                    setTextIsSelectable(true)
+                    movementMethod = LinkMovementMethodCompat.getInstance()
                     hyphenationFrequency = Layout.HYPHENATION_FREQUENCY_NONE
                     breakStrategy = LineBreaker.BREAK_STRATEGY_SIMPLE
                 }

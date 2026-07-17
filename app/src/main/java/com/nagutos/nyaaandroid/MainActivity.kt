@@ -4,6 +4,8 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -126,6 +128,12 @@ class MainActivity : ComponentActivity() {
                         NavHost(
                             navController = navController,
                             startDestination = Screen.Search.route,
+                            // Instant navigation: the default 700ms crossfade blocked input
+                            // during the transition; None keeps the app responsive at all times.
+                            enterTransition = { EnterTransition.None },
+                            exitTransition = { ExitTransition.None },
+                            popEnterTransition = { EnterTransition.None },
+                            popExitTransition = { ExitTransition.None },
                             modifier = Modifier.fillMaxSize()
                         ) {
                             // --- Home ---
