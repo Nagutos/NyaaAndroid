@@ -14,7 +14,6 @@ import androidx.compose.ui.graphics.Color
 data class NyaaSemanticColors(
     val seeder: Color,
     val leecher: Color,
-    val magnet: Color,
     val favorite: Color,
     val folder: Color,
 )
@@ -22,7 +21,6 @@ data class NyaaSemanticColors(
 val LightSemanticColors = NyaaSemanticColors(
     seeder = SeederGreenLight,
     leecher = LeecherRedLight,
-    magnet = MagnetBlue,
     favorite = FavoritePink,
     folder = FolderAmberLight,
 )
@@ -31,7 +29,6 @@ val LightSemanticColors = NyaaSemanticColors(
 val DarkSemanticColors = NyaaSemanticColors(
     seeder = SeederGreenDark,
     leecher = LeecherRedDark,
-    magnet = MagnetBlue,
     favorite = FavoritePink,
     folder = FolderAmberDark,
 )
