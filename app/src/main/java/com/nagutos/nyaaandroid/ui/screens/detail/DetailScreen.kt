@@ -15,14 +15,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.nagutos.nyaaandroid.R
 import com.nagutos.nyaaandroid.model.TorrentDetail
-import com.nagutos.nyaaandroid.ui.screens.home.DetailUiState
-import com.nagutos.nyaaandroid.ui.screens.home.HomeViewModel
 import androidx.compose.material3.MaterialTheme
 import com.nagutos.nyaaandroid.ui.components.FileNodeItem
 import com.nagutos.nyaaandroid.ui.components.StatBox
@@ -39,8 +38,8 @@ import androidx.compose.runtime.remember
 import java.net.URLEncoder
 import com.nagutos.nyaaandroid.ui.components.CommentItem
 import com.nagutos.nyaaandroid.ui.components.MarkdownText
-import com.nagutos.nyaaandroid.ui.screens.home.HomeViewModelFactory
 import com.nagutos.nyaaandroid.ui.components.toTorrentUI
+import com.nagutos.nyaaandroid.ui.theme.NyaaTheme
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -48,8 +47,8 @@ import com.nagutos.nyaaandroid.ui.components.toTorrentUI
 fun DetailScreen(
     url: String,
     navController: NavController,
-    viewModel: HomeViewModel = viewModel(
-        factory = HomeViewModelFactory(LocalContext.current.applicationContext as Application)
+    viewModel: DetailViewModel = viewModel(
+        factory = DetailViewModelFactory(LocalContext.current.applicationContext as Application)
     )
 ) {
 
@@ -64,10 +63,10 @@ fun DetailScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Détails du Torrent", style = MaterialTheme.typography.titleMedium) },
+                title = { Text(stringResource(R.string.detail_title), style = MaterialTheme.typography.titleMedium) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Retour")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.action_back))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -79,7 +78,7 @@ fun DetailScreen(
     ) { innerPadding ->
         Box(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
 
-            when (val state = viewModel.detailUiState) {
+            when (val state = viewModel.uiState) {
                 is DetailUiState.Loading -> {
                     CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
                 }
@@ -89,14 +88,14 @@ fun DetailScreen(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
-                            text = "Oups ! Erreur de chargement.",
+                            text = stringResource(R.string.detail_error_title),
                             style = MaterialTheme.typography.titleMedium,
                             color = MaterialTheme.colorScheme.error
                         )
                         Text(text = state.message, style = MaterialTheme.typography.bodySmall)
                         Spacer(modifier = Modifier.height(8.dp))
                         Button(onClick = { viewModel.loadDetail(url) }) {
-                            Text("Réessayer")
+                            Text(stringResource(R.string.action_retry))
                         }
                     }
                 }
@@ -150,7 +149,7 @@ fun TorrentDetailView(
                         Icons.Default.Person,
                         null,
                         modifier = Modifier.size(16.dp),
-                        tint = Color.Gray
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Spacer(modifier = Modifier.width(4.dp))
 
@@ -158,7 +157,7 @@ fun TorrentDetailView(
                     Text(
                         text = detail.submitter,
                         style = MaterialTheme.typography.bodySmall,
-                        color = if (isAnonymous) Color.Gray else MaterialTheme.colorScheme.primary,
+                        color = if (isAnonymous) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.clickable(enabled = !isAnonymous) {
                             val encodedQuery =
@@ -177,24 +176,24 @@ fun TorrentDetailView(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     StatBox(
-                        label = "Poids",
+                        label = stringResource(R.string.stat_size),
                         value = detail.totalSize,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     StatBox(
-                        label = "Seeders",
+                        label = stringResource(R.string.stat_seeders),
                         value = detail.seeders,
-                        color = Color(0xFF2E7D32)
-                    ) // Vert Nyaa
+                        color = NyaaTheme.colors.seeder
+                    )
                     StatBox(
-                        label = "Leechers",
+                        label = stringResource(R.string.stat_leechers),
                         value = detail.leechers,
-                        color = Color(0xFFC62828)
-                    ) // Rouge Nyaa
+                        color = NyaaTheme.colors.leecher
+                    )
                     StatBox(
-                        label = "Téléchargement Fini",
+                        label = stringResource(R.string.stat_completed),
                         value = detail.completed,
-                        color = Color.Gray
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
 
@@ -210,11 +209,11 @@ fun TorrentDetailView(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
-                        text = "Hash: ${detail.infoHash}",
+                        text = stringResource(R.string.detail_hash, detail.infoHash),
                         style = MaterialTheme.typography.labelSmall,
                         modifier = Modifier.padding(8.dp),
                         fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
-                        color = Color.Gray
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -238,13 +237,13 @@ fun TorrentDetailView(
                         }
                     },
                     modifier = Modifier.weight(1f),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1EA2E9)),
+                    colors = ButtonDefaults.buttonColors(containerColor = NyaaTheme.colors.magnet),
                     shape = RoundedCornerShape(12.dp),
                     contentPadding = PaddingValues(vertical = 12.dp)
                 ) {
                     Icon(Icons.Default.Download, contentDescription = null)
                     Spacer(modifier = Modifier.width(12.dp))
-                    Text("Ouvrir le Magnet")
+                    Text(stringResource(R.string.action_open_magnet))
                 }
                 FilledTonalIconButton(
                     onClick = onToggleFavorite,
@@ -256,22 +255,22 @@ fun TorrentDetailView(
                 ) {
                     Icon(
                         imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                        contentDescription = "Favori",
-                        tint = if (isFavorite) Color(0xFFE91E63) else MaterialTheme.colorScheme.onSurfaceVariant
+                        contentDescription = stringResource(R.string.cd_favorite),
+                        tint = if (isFavorite) NyaaTheme.colors.favorite else MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
                 IconButton(
                     onClick = {
                         val sendIntent = Intent().apply {
                             action = Intent.ACTION_SEND
-                            putExtra(Intent.EXTRA_TEXT, "Regarde ce torrent : ${detail.title}\n\nLien : https://nyaa.si$url")
+                            putExtra(Intent.EXTRA_TEXT, context.getString(R.string.detail_share_message, detail.title, url))
                             type = "text/plain"
                         }
                         val shareIntent = Intent.createChooser(sendIntent, null)
                         context.startActivity(shareIntent)
                     }
                 ) {
-                    Icon(Icons.Default.Share, contentDescription = "Partager", tint = Color.Gray)
+                    Icon(Icons.Default.Share, contentDescription = stringResource(R.string.cd_share), tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         }
@@ -279,7 +278,7 @@ fun TorrentDetailView(
         // --- DESCRIPTION ---
         item {
             Text(
-                "Description",
+                stringResource(R.string.detail_description),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold
             )
@@ -294,7 +293,7 @@ fun TorrentDetailView(
         // --- File List ---
         item {
             Text(
-                text = "Fichiers",
+                text = stringResource(R.string.detail_files),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(top = 16.dp)
@@ -309,7 +308,7 @@ fun TorrentDetailView(
         item {
             HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
             Text(
-                "Commentaires (${detail.comments.size})",
+                stringResource(R.string.detail_comments_header, detail.comments.size),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold
             )
@@ -318,9 +317,9 @@ fun TorrentDetailView(
         if (detail.comments.isEmpty()) {
             item {
                 Text(
-                    "Aucun commentaire pour le moment.",
+                    stringResource(R.string.detail_comments_empty),
                     style = MaterialTheme.typography.bodyMedium,
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         } else {

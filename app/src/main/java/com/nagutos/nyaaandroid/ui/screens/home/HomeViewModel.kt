@@ -4,22 +4,19 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import android.app.Application
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.nagutos.nyaaandroid.data.local.entity.FavoriteTorrent
 import com.nagutos.nyaaandroid.data.local.entity.NyaaDatabase
 import com.nagutos.nyaaandroid.data.local.entity.SavedSearch
 import com.nagutos.nyaaandroid.data.repository.FavoriteRepository
-import com.nagutos.nyaaandroid.model.TorrentDetail
+import com.nagutos.nyaaandroid.data.repository.TorrentRepository
 import com.nagutos.nyaaandroid.model.TorrentUI
-import com.nagutos.nyaaandroid.network.NyaaHtmlParser
-import com.nagutos.nyaaandroid.network.NyaaNetwork
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import kotlinx.coroutines.flow.stateIn
 
 sealed interface HomeUiState {
@@ -28,13 +25,10 @@ sealed interface HomeUiState {
     data class Error(val message: String) : HomeUiState
 }
 
-sealed interface DetailUiState {
-    data object Loading : DetailUiState
-    data class Success(val detail: TorrentDetail) : DetailUiState
-    data class Error(val message: String) : DetailUiState
-}
-
-class HomeViewModel(application: Application) : AndroidViewModel(application){
+class HomeViewModel(
+    application: Application,
+    private val torrentRepository: TorrentRepository = TorrentRepository(),
+) : AndroidViewModel(application) {
 
     var uiState: HomeUiState by mutableStateOf(HomeUiState.Loading)
         private set
@@ -46,9 +40,6 @@ class HomeViewModel(application: Application) : AndroidViewModel(application){
         private set
 
     var currentPage by mutableStateOf(1)
-        private set
-
-    var detailUiState: DetailUiState by mutableStateOf(DetailUiState.Loading)
         private set
 
     var searchUser by mutableStateOf<String?>(null)
@@ -144,53 +135,29 @@ class HomeViewModel(application: Application) : AndroidViewModel(application){
 
     fun isFavorite(torrentId: String): Flow<Boolean> = repository.isFavorite(torrentId)
 
-
     fun loadTorrents() {
         viewModelScope.launch {
             uiState = HomeUiState.Loading
             try {
-                val items = withContext(Dispatchers.IO) {
-                    val responseBody = NyaaNetwork.api.getTorrentsHtml(
-                        query = searchQuery,
-                        category = searchCategory,
-                        page = currentPage,
-                        user = searchUser,
-                        sort = searchSort,
-                        order = searchOrder
-                    )
-                    val htmlString = responseBody.string()
-                    NyaaHtmlParser.parseTorrents(htmlString)
-                }
-
-                if (items.isEmpty() && currentPage > 1) {
-                    uiState = HomeUiState.Success(emptyList())
-                } else {
-                    uiState = HomeUiState.Success(items)
-                }
+                val items = torrentRepository.getTorrents(
+                    query = searchQuery,
+                    category = searchCategory,
+                    page = currentPage,
+                    user = searchUser,
+                    sort = searchSort,
+                    order = searchOrder
+                )
+                // Keep the (empty) success state on out-of-range pages so the UI can offer
+                // to step back instead of showing an error.
+                uiState = HomeUiState.Success(items)
             } catch (e: Exception) {
-                e.printStackTrace()
+                Log.e(TAG, "Failed to load torrents", e)
                 uiState = HomeUiState.Error(e.message ?: "Erreur inconnue")
             }
         }
     }
 
-    fun loadDetail(url: String) {
-        viewModelScope.launch {
-            detailUiState = DetailUiState.Loading
-            try {
-                // On bascule sur le thread IO pour le réseau et le parsing Jsoup
-                val detail = withContext(Dispatchers.IO) {
-                    val response = NyaaNetwork.api.getTorrentDetailHtml(url)
-                    val html = response.string()
-
-                    // Parsing Jsoup de la page entière
-                    NyaaHtmlParser.parseDetail(html)
-                }
-                detailUiState = DetailUiState.Success(detail)
-            } catch (e: Exception) {
-                e.printStackTrace()
-                detailUiState = DetailUiState.Error(e.message ?: "Erreur de connexion")
-            }
-        }
+    private companion object {
+        const val TAG = "HomeViewModel"
     }
 }
