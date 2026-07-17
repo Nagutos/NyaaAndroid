@@ -13,3 +13,12 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# graphify tooling (local knowledge-graph output)
+/graphify-out/
+/.graphify
+/.graphifyignore
+
+# Claude Code (local assistant files)
+/.claude/
+/CLAUDE.md
