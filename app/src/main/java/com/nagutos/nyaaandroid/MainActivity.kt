@@ -28,8 +28,8 @@ import com.nagutos.nyaaandroid.utils.AppTheme
 import com.nagutos.nyaaandroid.utils.ThemePreferences
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.nagutos.nyaaandroid.data.local.entity.FavoriteTorrent
-import com.nagutos.nyaaandroid.ui.screens.home.HomeViewModel
-import com.nagutos.nyaaandroid.ui.screens.home.HomeViewModelFactory
+import com.nagutos.nyaaandroid.ui.screens.favorites.FavoritesViewModel
+import com.nagutos.nyaaandroid.ui.screens.favorites.FavoritesViewModelFactory
 import java.net.URLEncoder
 
 class MainActivity : ComponentActivity() {
@@ -48,11 +48,11 @@ class MainActivity : ComponentActivity() {
             val navBackStackEntry by navController.currentBackStackEntryAsState()
             val currentDestination = navBackStackEntry?.destination
 
-            val mainViewModel: HomeViewModel = viewModel(
-                factory = HomeViewModelFactory(application)
+            val favoritesViewModel: FavoritesViewModel = viewModel(
+                factory = FavoritesViewModelFactory(application)
             )
 
-            val favorites by mainViewModel.favoriteTorrents.collectAsState(
+            val favorites by favoritesViewModel.favoriteTorrents.collectAsState(
                 initial = emptyList<FavoriteTorrent>()
             )
             val favoritesCount = favorites.size

@@ -19,8 +19,6 @@ import androidx.navigation.NavController
 import com.nagutos.nyaaandroid.R
 import com.nagutos.nyaaandroid.ui.components.TorrentItem
 import com.nagutos.nyaaandroid.ui.components.toTorrentUI
-import com.nagutos.nyaaandroid.ui.screens.home.HomeViewModel
-import com.nagutos.nyaaandroid.ui.screens.home.HomeViewModelFactory
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -28,7 +26,7 @@ fun FavoritesScreen(
     navController: NavController,
     onTorrentClick: (String) -> Unit,
     onSettingsClick: () -> Unit,
-    viewModel: HomeViewModel = viewModel(factory = HomeViewModelFactory(LocalContext.current.applicationContext as Application))
+    viewModel: FavoritesViewModel = viewModel(factory = FavoritesViewModelFactory(LocalContext.current.applicationContext as Application))
 ) {
     val favorites by viewModel.favoriteTorrents.collectAsState()
     val favoriteIds = remember(favorites) { favorites.map { it.id }.toSet() }
