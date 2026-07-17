@@ -47,7 +47,7 @@ ksp {
     arg("room.schemaLocation", "$projectDir/schemas")
 }
 
-val roomVersion = "2.8.4"
+val roomVersion = "2.7.2"
 
 dependencies {
     implementation(libs.androidx.core.ktx)
