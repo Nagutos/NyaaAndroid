@@ -34,9 +34,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.material3.MenuAnchorType
 import androidx.compose.ui.Alignment
+import com.nagutos.nyaaandroid.R
 import com.nagutos.nyaaandroid.data.local.entity.SavedSearch
 
 
@@ -125,13 +127,13 @@ fun AdvancedSearchDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Recherche Avancée") },
+        title = { Text(stringResource(R.string.search_dialog_title)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 OutlinedTextField(
                     value = query,
                     onValueChange = { query = it },
-                    label = { Text("Mots-clés") },
+                    label = { Text(stringResource(R.string.search_keywords)) },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true
                 )
@@ -145,7 +147,7 @@ fun AdvancedSearchDialog(
                         value = selectedCategoryPair.first,
                         onValueChange = {},
                         readOnly = true,
-                        label = { Text("Catégorie") },
+                        label = { Text(stringResource(R.string.search_category)) },
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
                         colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
                         modifier = Modifier
@@ -170,8 +172,8 @@ fun AdvancedSearchDialog(
                 }
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
-                        text = if (isDescending) "Tri : Décroissant (Plus grand au plus petit)"
-                        else "Tri : Croissant (Plus petit au plus grand)",
+                        text = if (isDescending) stringResource(R.string.search_sort_desc_hint)
+                        else stringResource(R.string.search_sort_asc_hint),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.primary
                     )
@@ -190,7 +192,7 @@ fun AdvancedSearchDialog(
                                 value = selectedSort.first,
                                 onValueChange = {},
                                 readOnly = true,
-                                label = { Text("Trier par") },
+                                label = { Text(stringResource(R.string.search_sort_by)) },
                                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = sortExpanded) },
                                 modifier = Modifier.menuAnchor(type = MenuAnchorType.PrimaryNotEditable, enabled = true)
                             )
@@ -216,13 +218,13 @@ fun AdvancedSearchDialog(
                             Icon(
                                 imageVector = if (isDescending) Icons.Default.ArrowDownward
                                 else Icons.Default.ArrowUpward,
-                                contentDescription = "Changer l'ordre"
+                                contentDescription = stringResource(R.string.cd_change_order)
                             )
                         }
                     }
                 }
                 if (savedSearches.isNotEmpty()) {
-                    Text("Mes filtres rapides", style = MaterialTheme.typography.labelMedium)
+                    Text(stringResource(R.string.search_quick_filters), style = MaterialTheme.typography.labelMedium)
                     LazyRow(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         modifier = Modifier.fillMaxWidth()
@@ -239,7 +241,7 @@ fun AdvancedSearchDialog(
                                 trailingIcon = {
                                     Icon(
                                         imageVector = Icons.Default.Close,
-                                        contentDescription = "Supprimer",
+                                        contentDescription = stringResource(R.string.cd_delete),
                                         modifier = Modifier
                                             .size(18.dp)
                                             .clickable { onDeleteSearch(saved) }
@@ -256,7 +258,7 @@ fun AdvancedSearchDialog(
                 ) {
                     Icon(Icons.Default.Add, contentDescription = null)
                     Spacer(Modifier.width(8.dp))
-                    Text("Enregistrer ces filtres")
+                    Text(stringResource(R.string.search_save_filters))
                 }
             }
         },
@@ -265,34 +267,34 @@ fun AdvancedSearchDialog(
                 val orderString = if (isDescending) "desc" else "asc"
                 onSearch(query, selectedCategoryPair.second, selectedSort.second, orderString)
             }) {
-                Text("Rechercher")
+                Text(stringResource(R.string.action_search))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Annuler")
+                Text(stringResource(R.string.action_cancel))
             }
         }
     )
     if (showSaveLabelDialog) {
         AlertDialog(
             onDismissRequest = { showSaveLabelDialog = false },
-            title = { Text("Nommer ce filtre") },
+            title = { Text(stringResource(R.string.search_name_filter)) },
             text = {
                 OutlinedTextField(
                     value = filterLabel,
                     onValueChange = { filterLabel = it },
-                    label = { Text("Nom (ex: Anime VOSTFR)") },
+                    label = { Text(stringResource(R.string.search_filter_name_hint)) },
                     singleLine = true
                 )
             },
             confirmButton = {
                 Button(onClick = { onSearch(query, selectedCategoryPair.second, selectedSort.second, selectedOrder.second) }) {
-                    Text("Rechercher")
+                    Text(stringResource(R.string.action_search))
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showSaveLabelDialog = false }) { Text("Annuler") }
+                TextButton(onClick = { showSaveLabelDialog = false }) { Text(stringResource(R.string.action_cancel)) }
             }
         )
     }

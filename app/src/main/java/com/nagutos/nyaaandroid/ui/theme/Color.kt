@@ -49,3 +49,17 @@ val BackgroundAmoled = Color(0xFF000000)
 val SurfaceAmoled = Color(0xFF000000)
 val SurfaceVariantAmoled = Color(0xFF141414)
 val OutlineAmoled = Color(0xFF444444)
+
+
+// --- 4. SEMANTIC SIGNAL COLORS ---
+// Domain colors reused across screens (seeders, leechers, magnet, favorite, folders).
+// Exposed as theme tokens via NyaaTheme.colors so every screen stays consistent and each
+// variant keeps enough contrast on light vs dark/AMOLED surfaces.
+val SeederGreenLight = Color(0xFF2E7D32)
+val SeederGreenDark = Color(0xFF66BB6A)
+val LeecherRedLight = Color(0xFFC62828)
+val LeecherRedDark = Color(0xFFEF5350)
+val MagnetBlue = Color(0xFF1EA2E9)
+val FavoritePink = Color(0xFFE91E63)
+val FolderAmberLight = Color(0xFFF39C12)
+val FolderAmberDark = Color(0xFFF5B041)

@@ -10,8 +10,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
+import com.nagutos.nyaaandroid.R
 import com.nagutos.nyaaandroid.utils.AppTheme
 import com.nagutos.nyaaandroid.utils.ThemePreferences
 import kotlinx.coroutines.launch
@@ -28,10 +30,10 @@ fun SettingsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Paramètres") },
+                title = { Text(stringResource(R.string.settings_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Retour")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -48,7 +50,7 @@ fun SettingsScreen(
                 .fillMaxSize()
         ) {
             Text(
-                text = "Apparence",
+                text = stringResource(R.string.settings_appearance),
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.primary
             )
@@ -58,28 +60,28 @@ fun SettingsScreen(
 
                 // 1. CLAIR
                 ThemeOption(
-                    text = "Thème Clair (Light)",
+                    text = stringResource(R.string.theme_light),
                     selected = currentTheme == AppTheme.LIGHT,
                     onClick = { scope.launch { themePreferences.setTheme(AppTheme.LIGHT) } }
                 )
 
                 // 2. SOMBRE CLASSIQUE
                 ThemeOption(
-                    text = "Thème Sombre (Gris Classique)",
+                    text = stringResource(R.string.theme_dark),
                     selected = currentTheme == AppTheme.DARK,
                     onClick = { scope.launch { themePreferences.setTheme(AppTheme.DARK) } }
                 )
 
                 // 3. AMOLED
                 ThemeOption(
-                    text = "Thème AMOLED (Noir Pur)",
+                    text = stringResource(R.string.theme_amoled),
                     selected = currentTheme == AppTheme.AMOLED,
                     onClick = { scope.launch { themePreferences.setTheme(AppTheme.AMOLED) } }
                 )
 
                 // 4. System
                 ThemeOption(
-                    text = "Système (Par défaut)",
+                    text = stringResource(R.string.theme_system),
                     selected = currentTheme == AppTheme.SYSTEM,
                     onClick = { scope.launch { themePreferences.setTheme(AppTheme.SYSTEM) } }
                 )

@@ -10,11 +10,13 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.nagutos.nyaaandroid.R
 import com.nagutos.nyaaandroid.ui.components.TorrentItem
 import com.nagutos.nyaaandroid.ui.components.toTorrentUI
 import com.nagutos.nyaaandroid.ui.screens.home.HomeViewModel
@@ -36,9 +38,9 @@ fun FavoritesScreen(
             TopAppBar(
                 title = {
                     Column {
-                        Text("Mes Favoris")
+                        Text(stringResource(R.string.favorites_title))
                         Text(
-                            text = "${favorites.size} torrents enregistrés",
+                            text = pluralStringResource(R.plurals.favorites_count, favorites.size, favorites.size),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
                         )
@@ -50,7 +52,7 @@ fun FavoritesScreen(
                 ),
                 actions = {
                     IconButton(onClick = onSettingsClick) {
-                        Icon(Icons.Default.Settings, contentDescription = "Paramètres")
+                        Icon(Icons.Default.Settings, contentDescription = stringResource(R.string.action_settings))
                     }
                 }
             )
@@ -59,7 +61,7 @@ fun FavoritesScreen(
     ) { padding ->
         if (favorites.isEmpty()) {
             Box(modifier = Modifier.padding(padding).fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("Aucun favori pour le moment.", color = Color.Gray)
+                Text(stringResource(R.string.favorites_empty), color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         } else {
             LazyColumn(

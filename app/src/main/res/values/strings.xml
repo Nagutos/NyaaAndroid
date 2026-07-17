@@ -1,3 +1,88 @@
 <resources>
     <string name="app_name">NyaaAndroid</string>
+
+    <!-- Navigation -->
+    <string name="nav_search">Recherche</string>
+    <string name="nav_favorites">Favoris</string>
+
+    <!-- Common actions -->
+    <string name="action_settings">Paramètres</string>
+    <string name="action_back">Retour</string>
+    <string name="action_retry">Réessayer</string>
+    <string name="action_search">Rechercher</string>
+    <string name="action_reset">Réinitialiser</string>
+    <string name="action_cancel">Annuler</string>
+
+    <!-- Home -->
+    <string name="home_title">Nyaa Torrent</string>
+    <string name="home_filter_recent">Récents</string>
+    <string name="home_filter_uploader">Uploader : %1$s</string>
+    <string name="home_subtitle_page">%1$s (Page %2$d)</string>
+
+    <!-- Favorites -->
+    <string name="favorites_title">Mes Favoris</string>
+    <string name="favorites_empty">Aucun favori pour le moment.</string>
+    <plurals name="favorites_count">
+        <item quantity="one">%d torrent enregistré</item>
+        <item quantity="other">%d torrents enregistrés</item>
+    </plurals>
+
+    <!-- Settings -->
+    <string name="settings_title">Paramètres</string>
+    <string name="settings_appearance">Apparence</string>
+    <string name="theme_light">Thème Clair (Light)</string>
+    <string name="theme_dark">Thème Sombre (Gris Classique)</string>
+    <string name="theme_amoled">Thème AMOLED (Noir Pur)</string>
+    <string name="theme_system">Système (Par défaut)</string>
+
+    <!-- Torrent list / pagination -->
+    <string name="cd_previous">Précédent</string>
+    <string name="cd_next">Suivant</string>
+    <string name="page_label">Page %1$d</string>
+
+    <!-- Empty / error states -->
+    <string name="empty_more_results">Plus de résultats à la page %1$d.</string>
+    <string name="empty_go_back">Retour à la page précédente</string>
+    <string name="empty_no_results">Aucun résultat trouvé pour cette recherche.</string>
+    <string name="error_prefix">Erreur : %1$s</string>
+
+    <!-- Detail -->
+    <string name="detail_title">Détails du Torrent</string>
+    <string name="detail_error_title">Oups ! Erreur de chargement.</string>
+    <string name="detail_submitter_anonymous">Anonyme</string>
+    <string name="stat_size">Poids</string>
+    <string name="stat_seeders">Seeders</string>
+    <string name="stat_leechers">Leechers</string>
+    <string name="stat_completed">Téléchargement Fini</string>
+    <string name="detail_hash">Hash: %1$s</string>
+    <string name="action_open_magnet">Ouvrir le Magnet</string>
+    <string name="cd_favorite">Favori</string>
+    <string name="cd_share">Partager</string>
+    <string name="detail_description">Description</string>
+    <string name="detail_files">Fichiers</string>
+    <string name="detail_files_count">Fichiers (%1$d)</string>
+    <string name="detail_comments_header">Commentaires (%1$d)</string>
+    <string name="detail_comments_empty">Aucun commentaire pour le moment.</string>
+    <string name="detail_share_message">Regarde ce torrent : %1$s\n\nLien : https://nyaa.si%2$s</string>
+
+    <!-- Image viewer -->
+    <string name="cd_zoom">Agrandissement</string>
+    <string name="action_close">Fermer</string>
+
+    <!-- Comments -->
+    <string name="cd_avatar">Avatar de %1$s</string>
+
+    <!-- Advanced search dialog -->
+    <string name="search_dialog_title">Recherche Avancée</string>
+    <string name="search_keywords">Mots-clés</string>
+    <string name="search_category">Catégorie</string>
+    <string name="search_sort_by">Trier par</string>
+    <string name="cd_change_order">Changer l\'ordre</string>
+    <string name="search_sort_desc_hint">Tri : Décroissant (Plus grand au plus petit)</string>
+    <string name="search_sort_asc_hint">Tri : Croissant (Plus petit au plus grand)</string>
+    <string name="search_quick_filters">Mes filtres rapides</string>
+    <string name="cd_delete">Supprimer</string>
+    <string name="search_save_filters">Enregistrer ces filtres</string>
+    <string name="search_name_filter">Nommer ce filtre</string>
+    <string name="search_filter_name_hint">Nom (ex: Anime VOSTFR)</string>
 </resources>

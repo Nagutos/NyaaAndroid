@@ -22,6 +22,8 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import com.nagutos.nyaaandroid.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -69,15 +71,15 @@ fun HomeScreen(
             TopAppBar(
                 title = {
                     Column {
-                        Text("Nyaa Torrent")
+                        Text(stringResource(R.string.home_title))
                         val filterText = when {
-                            viewModel.searchUser != null -> "Uploader : ${viewModel.searchUser}"
+                            viewModel.searchUser != null -> stringResource(R.string.home_filter_uploader, viewModel.searchUser!!)
                             viewModel.searchQuery.isNotEmpty() -> viewModel.searchQuery
-                            else -> "Récents"
+                            else -> stringResource(R.string.home_filter_recent)
                         }
 
                         Text(
-                            text = "$filterText (Page ${viewModel.currentPage})",
+                            text = stringResource(R.string.home_subtitle_page, filterText, viewModel.currentPage),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
                         )
@@ -93,12 +95,12 @@ fun HomeScreen(
                         viewModel.searchUser != null) {
 
                         IconButton(onClick = { viewModel.onSearch("", "0_0") }) {
-                            Icon(Icons.Default.Refresh, contentDescription = "Reset")
+                            Icon(Icons.Default.Refresh, contentDescription = stringResource(R.string.action_reset))
                         }
                     }
 
                     IconButton(onClick = onSettingsClick) {
-                        Icon(Icons.Default.Settings, contentDescription = "Paramètres")
+                        Icon(Icons.Default.Settings, contentDescription = stringResource(R.string.action_settings))
                     }
                 }
             )
@@ -109,7 +111,7 @@ fun HomeScreen(
                 onClick = { showSearchDialog = true },
                 containerColor = MaterialTheme.colorScheme.primary
             ) {
-                Icon(Icons.Default.Search, contentDescription = "Rechercher")
+                Icon(Icons.Default.Search, contentDescription = stringResource(R.string.action_search))
             }
         }
     ) { innerPadding ->

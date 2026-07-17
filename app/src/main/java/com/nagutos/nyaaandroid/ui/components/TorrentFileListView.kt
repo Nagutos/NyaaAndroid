@@ -16,10 +16,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.*
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.nagutos.nyaaandroid.R
 import com.nagutos.nyaaandroid.model.TorrentFile
+import com.nagutos.nyaaandroid.ui.theme.NyaaTheme
 
 @Composable
 fun TorrentFileListView(files: List<TorrentFile>) {
@@ -30,7 +33,7 @@ fun TorrentFileListView(files: List<TorrentFile>) {
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
             Text(
-                text = "Fichiers (${files.size})",
+                text = stringResource(R.string.detail_files_count, files.size),
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(bottom = 8.dp)
@@ -46,7 +49,7 @@ fun TorrentFileListView(files: List<TorrentFile>) {
                         imageVector = if (file.isDirectory) Icons.Default.Folder else Icons.AutoMirrored.Filled.InsertDriveFile,
                         contentDescription = null,
                         modifier = Modifier.size(16.dp),
-                        tint = if (file.isDirectory) Color(0xFFF39C12) else Color.Gray
+                        tint = if (file.isDirectory) NyaaTheme.colors.folder else MaterialTheme.colorScheme.onSurfaceVariant
                     )
 
                     Spacer(modifier = Modifier.width(8.dp))
@@ -65,7 +68,7 @@ fun TorrentFileListView(files: List<TorrentFile>) {
                         Text(
                             text = file.size,
                             style = MaterialTheme.typography.labelSmall,
-                            color = Color.Gray
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
@@ -86,7 +89,7 @@ fun FileListItem(file: TorrentFile) {
             imageVector = if (file.isDirectory) Icons.Default.Folder else Icons.AutoMirrored.Filled.InsertDriveFile,
             contentDescription = null,
             modifier = Modifier.size(18.dp),
-            tint = if (file.isDirectory) Color(0xFFF39C12) else Color.Gray
+            tint = if (file.isDirectory) NyaaTheme.colors.folder else MaterialTheme.colorScheme.onSurfaceVariant
         )
 
         Spacer(modifier = Modifier.width(12.dp))
@@ -102,7 +105,7 @@ fun FileListItem(file: TorrentFile) {
         Text(
             text = file.size,
             style = MaterialTheme.typography.labelSmall,
-            color = Color.Gray,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(start = 8.dp)
         )
     }
