@@ -78,9 +78,10 @@ fun CommentItem(comment: Comment) {
                 color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
                 shape = MaterialTheme.shapes.small
             ) {
-                Text(
-                    text = comment.content,
-                    style = MaterialTheme.typography.bodyMedium,
+                // Nyaa comments are markdown too: render them so links are clickable and text
+                // is selectable, instead of a plain (inert) Text.
+                MarkdownText(
+                    markdown = comment.content,
                     modifier = Modifier.padding(8.dp)
                 )
             }

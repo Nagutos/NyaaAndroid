@@ -30,6 +30,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.navigation.NavController
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.runtime.collectAsState
@@ -70,8 +71,8 @@ fun DetailScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface
                 )
             )
         }
@@ -129,92 +130,103 @@ fun TorrentDetailView(
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // --- TITLE & AUTHOR ---
+        // --- HERO CARD: title, submitter, stats, hash ---
         item {
-            Column(modifier = Modifier.fillMaxWidth()) {
-                // Titre
-                SelectionContainer {
-                    Text(
-                        text = detail.title,
-                        style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                // Ligne : Submitter and Date
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        Icons.Default.Person,
-                        null,
-                        modifier = Modifier.size(16.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-
-                    val isAnonymous = detail.submitter == "Anonyme"
-                    Text(
-                        text = detail.submitter,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = if (isAnonymous) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.clickable(enabled = !isAnonymous) {
-                            val encodedQuery =
-                                URLEncoder.encode("user:${detail.submitter}", "UTF-8")
-                            navController.navigate("home?query=$encodedQuery") {
-                                popUpTo("home") { inclusive = true }
-                            }
-                        }
-                    )
-                }
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Stats (Size, Seed, Leech, Completed)
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
+            Card(
+                shape = RoundedCornerShape(18.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
                 ) {
-                    StatBox(
-                        label = stringResource(R.string.stat_size),
-                        value = detail.totalSize,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    StatBox(
-                        label = stringResource(R.string.stat_seeders),
-                        value = detail.seeders,
-                        color = NyaaTheme.colors.seeder
-                    )
-                    StatBox(
-                        label = stringResource(R.string.stat_leechers),
-                        value = detail.leechers,
-                        color = NyaaTheme.colors.leecher
-                    )
-                    StatBox(
-                        label = stringResource(R.string.stat_completed),
-                        value = detail.completed,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Info Hash
-                Card(
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(
-                            alpha = 0.5f
+                    SelectionContainer {
+                        Text(
+                            text = detail.title,
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold
                         )
-                    ),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(
-                        text = stringResource(R.string.detail_hash, detail.infoHash),
-                        style = MaterialTheme.typography.labelSmall,
-                        modifier = Modifier.padding(8.dp),
-                        fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // Submitter and date
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            Icons.Default.Person,
+                            null,
+                            modifier = Modifier.size(16.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+
+                        val isAnonymous = detail.submitter == "Anonyme"
+                        Text(
+                            text = detail.submitter,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = if (isAnonymous) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.clickable(enabled = !isAnonymous) {
+                                val encodedQuery =
+                                    URLEncoder.encode("user:${detail.submitter}", "UTF-8")
+                                // Route is "search?query={query}" (Screen.Search.route = "search");
+                                // navigating to the old "home" route crashed with an unknown-destination error.
+                                navController.navigate("search?query=$encodedQuery") {
+                                    popUpTo(navController.graph.findStartDestination().id) { inclusive = true }
+                                    launchSingleTop = true
+                                }
+                            }
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(18.dp))
+
+                    // Stats (Size, Seed, Leech, Completed)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        StatBox(
+                            label = stringResource(R.string.stat_size),
+                            value = detail.totalSize,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        StatBox(
+                            label = stringResource(R.string.stat_seeders),
+                            value = detail.seeders,
+                            color = NyaaTheme.colors.seeder
+                        )
+                        StatBox(
+                            label = stringResource(R.string.stat_leechers),
+                            value = detail.leechers,
+                            color = NyaaTheme.colors.leecher
+                        )
+                        StatBox(
+                            label = stringResource(R.string.stat_completed),
+                            value = detail.completed,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Info hash
+                    Surface(
+                        color = MaterialTheme.colorScheme.surfaceContainerHighest,
+                        shape = RoundedCornerShape(10.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            text = stringResource(R.string.detail_hash, detail.infoHash),
+                            style = MaterialTheme.typography.labelSmall,
+                            modifier = Modifier.padding(10.dp),
+                            fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
             }
         }

@@ -81,13 +81,13 @@ fun HomeScreen(
                         Text(
                             text = stringResource(R.string.home_subtitle_page, filterText, viewModel.currentPage),
                             style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface
                 ),
                 actions = {
                     if (viewModel.searchQuery.isNotEmpty() ||
@@ -158,7 +158,12 @@ fun HomeScreen(
 
                 when (val state = viewModel.uiState) {
                     is HomeUiState.Loading -> {
-
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                        }
                     }
 
                     is HomeUiState.Error -> {
