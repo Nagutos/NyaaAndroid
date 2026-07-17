@@ -5,6 +5,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
@@ -76,6 +77,13 @@ fun NyaaAndroidTheme(
         AppTheme.SYSTEM -> if (darkThemeSystem) DarkColorScheme else LightColorScheme
     }
 
+    val isDark = when (appTheme) {
+        AppTheme.LIGHT -> false
+        AppTheme.DARK, AppTheme.AMOLED -> true
+        AppTheme.SYSTEM -> darkThemeSystem
+    }
+    val semanticColors = if (isDark) DarkSemanticColors else LightSemanticColors
+
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {
@@ -87,9 +95,11 @@ fun NyaaAndroidTheme(
         }
     }
 
-    MaterialTheme(
-        colorScheme = colorScheme,
-        typography = Typography,
-        content = content
-    )
+    CompositionLocalProvider(LocalNyaaColors provides semanticColors) {
+        MaterialTheme(
+            colorScheme = colorScheme,
+            typography = Typography,
+            content = content
+        )
+    }
 }

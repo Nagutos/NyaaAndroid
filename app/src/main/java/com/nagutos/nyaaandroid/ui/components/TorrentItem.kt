@@ -28,12 +28,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.nagutos.nyaaandroid.R
 import com.nagutos.nyaaandroid.model.TorrentUI
 import com.nagutos.nyaaandroid.ui.helpers.getCategoryIcon
 import com.nagutos.nyaaandroid.ui.helpers.getCategoryColor
+import com.nagutos.nyaaandroid.ui.theme.NyaaTheme
 
 @Composable
 fun TorrentItem(
@@ -135,19 +138,19 @@ fun TorrentItem(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     BadgeInfo(text = torrent.size, color = MaterialTheme.colorScheme.primaryContainer, textColor = MaterialTheme.colorScheme.onPrimaryContainer)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text(text = torrent.date, style = MaterialTheme.typography.labelSmall, color = Color.Gray)
+                    Text(text = torrent.date, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
 
             Column(horizontalAlignment = Alignment.End) {
-                Text(text = "S: ${torrent.seeders}", color = Color(0xFF4CAF50), style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
-                Text(text = "L: ${torrent.leechers}", color = Color(0xFFF44336), style = MaterialTheme.typography.labelMedium)
+                Text(text = "S: ${torrent.seeders}", color = NyaaTheme.colors.seeder, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
+                Text(text = "L: ${torrent.leechers}", color = NyaaTheme.colors.leecher, style = MaterialTheme.typography.labelMedium)
             }
             IconButton(onClick = onToggleFavorite) {
                 Icon(
                     imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                    contentDescription = "Favori",
-                    tint = if (isFavorite) Color(0xFFE91E63) else Color.Gray
+                    contentDescription = stringResource(R.string.cd_favorite),
+                    tint = if (isFavorite) NyaaTheme.colors.favorite else MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }

@@ -2,13 +2,13 @@ package com.nagutos.nyaaandroid.ui.helpers
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
@@ -20,6 +20,8 @@ fun Modifier.simpleVerticalScrollbar(
     val duration = if (state.isScrollInProgress) 150 else 500
 
     val alpha by animateFloatAsState(targetValue = targetAlpha, animationSpec = tween(duration), label = "")
+    // Captured here (composable scope) so it can be used inside the non-composable DrawScope.
+    val scrollbarColor = MaterialTheme.colorScheme.onSurfaceVariant
 
     drawWithContent {
         drawContent()
@@ -33,7 +35,7 @@ fun Modifier.simpleVerticalScrollbar(
             val scrollbarHeight = state.layoutInfo.visibleItemsInfo.size * elementHeight
 
             drawRect(
-                color = Color.Gray.copy(alpha = alpha),
+                color = scrollbarColor.copy(alpha = alpha),
                 topLeft = Offset(this.size.width - width.toPx(), scrollbarOffsetY),
                 size = Size(width.toPx(), scrollbarHeight),
                 alpha = alpha

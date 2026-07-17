@@ -17,13 +17,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.nagutos.nyaaandroid.R
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import coil.compose.AsyncImage
 import io.noties.markwon.AbstractMarkwonPlugin
 import io.noties.markwon.Markwon
+import io.noties.markwon.SoftBreakAddsNewLinePlugin
 import io.noties.markwon.core.MarkwonTheme
 import io.noties.markwon.ext.strikethrough.StrikethroughPlugin
 import io.noties.markwon.ext.tables.TablePlugin
@@ -66,6 +69,10 @@ fun MarkdownText(
             .build()
 
         Markwon.builder(context)
+            // Nyaa renders its markdown with markdown-it using `breaks:true`, so a single
+            // newline becomes a <br>. Markwon (commonmark) would collapse it to a space and
+            // flatten the layout. This plugin restores the soft-break-as-newline behavior.
+            .usePlugin(SoftBreakAddsNewLinePlugin.create())
             .usePlugin(HtmlPlugin.create())
             .usePlugin(StrikethroughPlugin.create())
             .usePlugin(TablePlugin.create(tableTheme))
@@ -149,7 +156,7 @@ fun FullScreenImageDialog(url: String, onDismiss: () -> Unit) {
         ) {
             AsyncImage(
                 model = url,
-                contentDescription = "Agrandissement",
+                contentDescription = stringResource(R.string.cd_zoom),
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(16.dp),
@@ -165,7 +172,7 @@ fun FullScreenImageDialog(url: String, onDismiss: () -> Unit) {
                 color = Color.DarkGray.copy(alpha = 0.8f)
             ) {
                 Text(
-                    text = "Fermer",
+                    text = stringResource(R.string.action_close),
                     color = Color.White,
                     modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp)
                 )
@@ -176,11 +183,21 @@ fun FullScreenImageDialog(url: String, onDismiss: () -> Unit) {
 
 
 /**
- * Cleans and repairs Nyaa's Markdown structure (entity and pipe management)
+ * Cleans up Nyaa's markdown before handing it to Markwon.
+ *
+ * Verified against real nyaa.si descriptions: table rows are already separated by real
+ * newlines (stored as &#10; and decoded by Jsoup's wholeText()), NOT glued together. Cells
+ * are frequently empty (e.g. "| Anime Time | |"), so we must NOT try to "split" rows on a
+ * "| |" pattern — that corrupts empty cells and breaks the whole table. We only supply the
+ * two things Markwon's GFM TablePlugin needs but Nyaa's raw text may lack:
+ *   1. a blank line BEFORE a table block (isolation) — handled in the loop below;
+ *   2. images inside table cells rendered vertically so they fit on mobile.
+ * (breaks:true, i.e. soft-break-as-newline, is handled by SoftBreakAddsNewLinePlugin above.)
  */
 fun sanitizeNyaaMarkdown(input: String): String {
     if (input.isBlank()) return ""
 
+    // Flatten [![alt](img)](link) -> ![alt](img) so the image renders instead of a bare link
     val textWithoutImageLinks = input.replace(Regex("\\[\\!\\[(.*?)\\]\\((.*?)\\)\\]\\((.*?)\\)"), "![$1]($2)")
 
 
@@ -218,7 +235,11 @@ fun sanitizeNyaaMarkdown(input: String): String {
                     }
                 }
             } else {
-                // IF TEXT: Do NOTHING.
+                // TEXT TABLE: GFM requires a blank line BEFORE the block, then contiguous
+                // rows. Isolate the block without inserting blank lines between the rows.
+                if (finalOutput.isNotEmpty() && finalOutput.last().isNotBlank()) {
+                    finalOutput.add("")
+                }
                 tableRows.forEach { finalOutput.add(it) }
             }
             i = j

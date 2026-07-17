@@ -19,9 +19,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
@@ -35,7 +35,7 @@ fun CommentItem(comment: Comment) {
         if (!comment.avatarUrl.isNullOrEmpty()) {
             AsyncImage(
                 model = comment.avatarUrl,
-                contentDescription = "Avatar de ${comment.user}",
+                contentDescription = stringResource(R.string.cd_avatar, comment.user),
                 contentScale = ContentScale.Crop,
                 // Si l'URL est nulle, on affiche l'image locale
                 placeholder = painterResource(R.drawable.avatar_default),
@@ -68,7 +68,7 @@ fun CommentItem(comment: Comment) {
                 Text(
                     text = comment.date,
                     style = MaterialTheme.typography.labelSmall,
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
 

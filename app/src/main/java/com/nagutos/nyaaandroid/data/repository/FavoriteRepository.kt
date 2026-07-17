@@ -34,13 +34,6 @@ class FavoriteRepository(private val favoriteDao: FavoriteDao,
         favoriteDao.deleteById(torrentId)
     }
 
-    // Supprimer un favori (on crée un objet temporaire avec l'ID pour que Room le trouve)
-    suspend fun removeFavorite(torrentId: String) {
-        // Pour supprimer, Room a besoin de l'objet complet ou d'une requête spécifique.
-        // On va simplifier avec une requête directe dans le DAO plus tard ou utiliser celle-ci :
-        // favoriteDao.deleteById(torrentId) -> à ajouter dans le DAO si besoin
-    }
-
     suspend fun insertSavedSearch(search: SavedSearch) {
         savedSearchDao.insertSearch(search)
     }

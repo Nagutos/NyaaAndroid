@@ -23,7 +23,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.nagutos.nyaaandroid.R
 import com.nagutos.nyaaandroid.model.TorrentUI
 import com.nagutos.nyaaandroid.ui.helpers.simpleVerticalScrollbar
 
@@ -71,7 +73,7 @@ fun TorrentList(
                     enabled = currentPage > 1,
                     colors = IconButtonDefaults.filledIconButtonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
                 ) {
-                    Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = "Précédent")
+                    Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = stringResource(R.string.cd_previous))
                 }
 
                 Spacer(modifier = Modifier.width(16.dp))
@@ -81,7 +83,7 @@ fun TorrentList(
                     color = MaterialTheme.colorScheme.primaryContainer
                 ) {
                     Text(
-                        text = "Page $currentPage",
+                        text = stringResource(R.string.page_label, currentPage),
                         style = MaterialTheme.typography.labelLarge,
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                         color = MaterialTheme.colorScheme.onPrimaryContainer
@@ -94,7 +96,7 @@ fun TorrentList(
                     onClick = onNext,
                     colors = IconButtonDefaults.filledIconButtonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
                 ) {
-                    Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = "Suivant")
+                    Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = stringResource(R.string.cd_next))
                 }
             }
         }

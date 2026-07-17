@@ -41,6 +41,12 @@ android {
         compose = true
     }
 }
+
+// Export the Room schema so migrations can be validated against it at build time.
+ksp {
+    arg("room.schemaLocation", "$projectDir/schemas")
+}
+
 val roomVersion = "2.8.4"
 
 dependencies {
@@ -70,9 +76,8 @@ dependencies {
     implementation("androidx.datastore:datastore-preferences:1.0.0")
     // --- Navigation ---
     implementation("androidx.navigation:navigation-compose:2.9.6")
-    // --- Réseau (Retrofit & XML) ---
+    // --- Network (Retrofit) ---
     implementation("com.squareup.retrofit2:retrofit:3.0.0")
-    implementation("com.squareup.retrofit2:converter-simplexml:3.0.0")
     // --- Parsing HTML (Jsoup) ---
     implementation("org.jsoup:jsoup:1.17.2")
     // --- Images (Coil) ---

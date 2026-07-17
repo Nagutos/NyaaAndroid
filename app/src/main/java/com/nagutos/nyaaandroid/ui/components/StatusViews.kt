@@ -16,7 +16,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.nagutos.nyaaandroid.R
 
 @Composable
 fun EmptyStateView(page: Int, onGoBack: () -> Unit) {
@@ -26,15 +28,15 @@ fun EmptyStateView(page: Int, onGoBack: () -> Unit) {
         verticalArrangement = Arrangement.Center
     ) {
         if (page > 1) {
-            Text("Plus de résultats à la page $page.", style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(R.string.empty_more_results, page), style = MaterialTheme.typography.titleMedium)
             Spacer(modifier = Modifier.height(16.dp))
             Button(onClick = onGoBack) {
                 Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Retour à la page précédente")
+                Text(stringResource(R.string.empty_go_back))
             }
         } else {
-            Text("Aucun résultat trouvé pour cette recherche.")
+            Text(stringResource(R.string.empty_no_results))
         }
     }
 }
@@ -46,8 +48,8 @@ fun ErrorView(message: String, onRetry: () -> Unit) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text("Erreur : $message", color = MaterialTheme.colorScheme.error)
+        Text(stringResource(R.string.error_prefix, message), color = MaterialTheme.colorScheme.error)
         Spacer(modifier = Modifier.height(8.dp))
-        Button(onClick = onRetry) { Text("Réessayer") }
+        Button(onClick = onRetry) { Text(stringResource(R.string.action_retry)) }
     }
 }

@@ -5,7 +5,7 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 
-@Database(entities = [FavoriteTorrent::class, SavedSearch::class], version = 3, exportSchema = false)
+@Database(entities = [FavoriteTorrent::class, SavedSearch::class], version = 3, exportSchema = true)
 abstract class NyaaDatabase : RoomDatabase() {
     abstract fun favoriteDao(): FavoriteDao
 
@@ -20,8 +20,16 @@ abstract class NyaaDatabase : RoomDatabase() {
                     context.applicationContext,
                     NyaaDatabase::class.java,
                     "nyaa_database"
-                ).fallbackToDestructiveMigration()
-                .build()
+                )
+                    // Version 3 is our baseline. From here on, every schema change MUST ship a
+                    // Migration in Migrations.ALL so user favorites and saved searches survive.
+                    .addMigrations(*Migrations.ALL)
+                    // Only the pre-baseline dev versions (1, 2) may be reset destructively — their
+                    // schemas were never exported so no migration can be written for them. Any
+                    // upgrade from version 3 onward without a matching migration will fail loudly
+                    // instead of silently wiping data.
+                    .fallbackToDestructiveMigrationFrom(dropAllTables = true, 1, 2)
+                    .build()
                 INSTANCE = instance
                 instance
             }
