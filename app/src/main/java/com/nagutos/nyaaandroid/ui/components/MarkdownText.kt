@@ -35,7 +35,11 @@ import io.noties.markwon.html.HtmlPlugin
 import android.graphics.text.LineBreaker
 import android.text.TextPaint
 import io.noties.markwon.image.coil.CoilImagesPlugin
+import io.noties.markwon.image.AsyncDrawable
 import io.noties.markwon.linkify.LinkifyPlugin
+import coil.imageLoader
+import coil.request.Disposable
+import coil.request.ImageRequest
 import android.text.method.LinkMovementMethod
 import android.text.style.ClickableSpan
 import io.noties.markwon.MarkwonConfiguration
@@ -58,7 +62,9 @@ fun MarkdownText(
         selectedImageUrl = url
     }
 
-    val markwon = remember(context) {
+    // Keyed on colorScheme so switching theme (e.g. Light <-> AMOLED) rebuilds Markwon with
+    // the new table/heading colors instead of keeping the ones captured at first composition.
+    val markwon = remember(context, colorScheme) {
         val tableTheme = TableTheme.Builder()
             .tableBorderColor(colorScheme.outline.toArgb())
             .tableBorderWidth(1)
@@ -77,7 +83,22 @@ fun MarkdownText(
             .usePlugin(StrikethroughPlugin.create())
             .usePlugin(TablePlugin.create(tableTheme))
             .usePlugin(LinkifyPlugin.create())
-            .usePlugin(CoilImagesPlugin.create(context))
+            // Give each markdown image a sized placeholder so Markwon reserves space up
+            // front (less layout jump on load) and the image fades in instead of popping.
+            .usePlugin(CoilImagesPlugin.create(object : CoilImagesPlugin.CoilStore {
+                override fun load(drawable: AsyncDrawable): ImageRequest {
+                    return ImageRequest.Builder(context)
+                        .data(drawable.destination)
+                        .crossfade(true)
+                        .placeholder(R.drawable.markdown_image_placeholder)
+                        .error(R.drawable.markdown_image_placeholder)
+                        .build()
+                }
+
+                override fun cancel(disposable: Disposable) {
+                    disposable.dispose()
+                }
+            }, context.imageLoader))
             .usePlugin(object : AbstractMarkwonPlugin() {
                 override fun configureTheme(builder: MarkwonTheme.Builder) {
                     builder
@@ -131,6 +152,10 @@ fun MarkdownText(
                 }
             },
             update = { textView ->
+                // Re-apply colors here too so a theme change recolors the base text/links,
+                // not only the Markwon spans (factory runs once, update runs on recomposition).
+                textView.setTextColor(colorScheme.onSurface.toArgb())
+                textView.setLinkTextColor(colorScheme.primary.toArgb())
                 val fixedMarkdown = sanitizeNyaaMarkdown(markdown)
                 markwon.setMarkdown(textView, fixedMarkdown)
             }
