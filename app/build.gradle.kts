@@ -59,13 +59,7 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.foundation)
-    implementation(libs.androidx.media3.exoplayer)
-    implementation(libs.androidx.room.external.antlr)
-    implementation(libs.androidx.room.common.jvm)
-    implementation(libs.androidx.constraintlayout)
     implementation(libs.androidx.compose.runtime)
-    implementation(libs.androidx.material3)
-    implementation(libs.androidx.foundation)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -73,13 +67,13 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
-    implementation("androidx.datastore:datastore-preferences:1.0.0")
+    implementation("androidx.datastore:datastore-preferences:1.2.1")
     // --- Navigation ---
-    implementation("androidx.navigation:navigation-compose:2.9.6")
+    implementation("androidx.navigation:navigation-compose:2.9.8")
     // --- Network (Retrofit) ---
     implementation("com.squareup.retrofit2:retrofit:3.0.0")
     // --- Parsing HTML (Jsoup) ---
-    implementation("org.jsoup:jsoup:1.17.2")
+    implementation("org.jsoup:jsoup:1.22.2")
     // --- Images (Coil) ---
     implementation("io.coil-kt:coil-compose:2.7.0")
     implementation("androidx.compose.material:material-icons-extended")
