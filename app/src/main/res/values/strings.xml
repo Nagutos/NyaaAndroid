@@ -85,4 +85,10 @@
     <string name="search_save_filters">Enregistrer ces filtres</string>
     <string name="search_name_filter">Nommer ce filtre</string>
     <string name="search_filter_name_hint">Nom (ex: Anime VOSTFR)</string>
+
+    <!-- Nyaa quality filter (f= param) -->
+    <string name="search_filter_label">Filtre</string>
+    <string name="search_filter_none">Aucun</string>
+    <string name="search_filter_no_remakes">Sans remakes</string>
+    <string name="search_filter_trusted">Trusted uniquement</string>
 </resources>

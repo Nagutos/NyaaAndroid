@@ -51,6 +51,10 @@ class HomeViewModel(
     var searchOrder by mutableStateOf("desc")
         private set
 
+    // Nyaa's "f" query param: 0 = no filter, 1 = no remakes, 2 = trusted only.
+    var searchFilter by mutableStateOf(0)
+        private set
+
     private val database = NyaaDatabase.getDatabase(application)
     private val repository = FavoriteRepository(
         database.favoriteDao(),
@@ -74,12 +78,19 @@ class HomeViewModel(
         loadTorrents()
     }
 
-    fun onSearch(query: String, category: String, sort: String = "id", order: String = "desc") {
+    fun onSearch(
+        query: String,
+        category: String,
+        sort: String = "id",
+        order: String = "desc",
+        filter: Int = 0
+    ) {
         this.searchUser = null
         this.searchQuery = query
         this.searchCategory = category
         this.searchSort = sort
         this.searchOrder = order
+        this.searchFilter = filter
         this.currentPage = 1
         loadTorrents()
     }
@@ -145,7 +156,8 @@ class HomeViewModel(
                     page = currentPage,
                     user = searchUser,
                     sort = searchSort,
-                    order = searchOrder
+                    order = searchOrder,
+                    filter = searchFilter
                 )
                 // Keep the (empty) success state on out-of-range pages so the UI can offer
                 // to step back instead of showing an error.

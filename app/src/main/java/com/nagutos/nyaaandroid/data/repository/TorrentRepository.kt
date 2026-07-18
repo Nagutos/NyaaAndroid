@@ -23,9 +23,11 @@ class TorrentRepository(
         page: Int,
         user: String?,
         sort: String,
-        order: String
+        order: String,
+        filter: Int = 0
     ): List<TorrentUI> = withContext(Dispatchers.IO) {
         val body = api.getTorrentsHtml(
+            filter = filter,
             query = query,
             category = category,
             page = page,

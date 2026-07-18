@@ -141,10 +141,11 @@ fun HomeScreen(
                         initialCategory = viewModel.searchCategory,
                         initialSort = viewModel.searchSort,
                         initialOrder = viewModel.searchOrder,
+                        initialFilter = viewModel.searchFilter,
                         savedSearches = savedSearches,
                         onDismiss = { showSearchDialog = false },
-                        onSearch = { query, category, sort, order ->
-                            viewModel.onSearch(query, category, sort, order)
+                        onSearch = { query, category, sort, order, filter ->
+                            viewModel.onSearch(query, category, sort, order, filter)
                             showSearchDialog = false
                         },
                         onSaveSearch = { label, query, category, sort, order ->

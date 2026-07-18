@@ -92,6 +92,13 @@ private val SORT_OPTIONS = listOf(
     "Complétés" to "downloads",
 )
 
+// Nyaa "f=" filter param: 0 = no filter, 1 = no remakes, 2 = trusted only.
+private val FILTER_OPTIONS = listOf(
+    R.string.search_filter_none to 0,
+    R.string.search_filter_no_remakes to 1,
+    R.string.search_filter_trusted to 2,
+)
+
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun AdvancedSearchDialog(
@@ -99,9 +106,10 @@ fun AdvancedSearchDialog(
     initialCategory: String,
     initialSort: String,
     initialOrder: String,
+    initialFilter: Int,
     savedSearches: List<SavedSearch>,
     onDismiss: () -> Unit,
-    onSearch: (String, String, String, String) -> Unit,
+    onSearch: (String, String, String, String, Int) -> Unit,
     onSaveSearch: (String, String, String, String, String) -> Unit,
     onDeleteSearch: (SavedSearch) -> Unit
 ) {
@@ -111,6 +119,7 @@ fun AdvancedSearchDialog(
     var selectedCategory by remember { mutableStateOf(initialCategory.ifBlank { "0_0" }) }
     var selectedSort by remember { mutableStateOf(SORT_OPTIONS.firstOrNull { it.second == initialSort }?.second ?: "id") }
     var isDescending by remember { mutableStateOf(initialOrder != "asc") }
+    var selectedFilter by remember { mutableStateOf(initialFilter) }
     var showSaveDialog by remember { mutableStateOf(false) }
     var filterLabel by remember { mutableStateOf("") }
 
@@ -263,6 +272,18 @@ fun AdvancedSearchDialog(
                 }
             }
 
+            // --- Quality filter (Nyaa f= param) ---
+            SectionLabel(stringResource(R.string.search_filter_label))
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                FILTER_OPTIONS.forEach { (labelRes, code) ->
+                    FilterChip(
+                        selected = selectedFilter == code,
+                        onClick = { selectedFilter = code },
+                        label = { Text(stringResource(labelRes)) }
+                    )
+                }
+            }
+
             // --- Order ---
             SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
                 SegmentedButton(
@@ -291,13 +312,14 @@ fun AdvancedSearchDialog(
                         selectedCategory = "0_0"
                         selectedSort = "id"
                         isDescending = true
+                        selectedFilter = 0
                     },
                     modifier = Modifier.height(48.dp)
                 ) { Text(stringResource(R.string.action_reset)) }
 
                 Button(
                     onClick = {
-                        onSearch(query, selectedCategory, selectedSort, if (isDescending) "desc" else "asc")
+                        onSearch(query, selectedCategory, selectedSort, if (isDescending) "desc" else "asc", selectedFilter)
                     },
                     shape = RoundedCornerShape(14.dp),
                     modifier = Modifier
