@@ -79,6 +79,7 @@
     <!-- Advanced search dialog -->
     <string name="search_dialog_title">Advanced Search</string>
     <string name="search_keywords">Keywords</string>
+    <string name="search_uploader">Uploader</string>
     <string name="search_category">Category</string>
     <string name="search_sort_by">Sort by</string>
     <string name="cd_change_order">Change order</string>

@@ -83,9 +83,11 @@ class HomeViewModel(
         category: String,
         sort: String = "id",
         order: String = "desc",
-        filter: Int = 0
+        filter: Int = 0,
+        user: String? = null
     ) {
-        this.searchUser = null
+        // Nyaa accepts q and u together, so keywords and uploader can be combined.
+        this.searchUser = user?.trim()?.ifBlank { null }
         this.searchQuery = query
         this.searchCategory = category
         this.searchSort = sort

@@ -22,6 +22,7 @@ import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -104,19 +105,21 @@ private val FILTER_OPTIONS = listOf(
 @Composable
 fun AdvancedSearchDialog(
     initialQuery: String,
+    initialUser: String,
     initialCategory: String,
     initialSort: String,
     initialOrder: String,
     initialFilter: Int,
     savedSearches: List<SavedSearch>,
     onDismiss: () -> Unit,
-    onSearch: (String, String, String, String, Int) -> Unit,
+    onSearch: (String, String, String, String, Int, String) -> Unit,
     onSaveSearch: (String, String, String, String, String) -> Unit,
     onDeleteSearch: (SavedSearch) -> Unit
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     var query by remember { mutableStateOf(initialQuery) }
+    var uploader by remember { mutableStateOf(initialUser) }
     var selectedCategory by remember { mutableStateOf(initialCategory.ifBlank { "0_0" }) }
     var selectedSort by remember { mutableStateOf(SORT_OPTIONS.firstOrNull { it.second == initialSort }?.second ?: "id") }
     var isDescending by remember { mutableStateOf(initialOrder != "asc") }
@@ -173,51 +176,23 @@ fun AdvancedSearchDialog(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            // --- Saved filters (with the "save" action right here) ---
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                SectionLabel(stringResource(R.string.search_quick_filters))
-                Spacer(Modifier.weight(1f))
-                TextButton(
-                    onClick = { showSaveDialog = true },
-                    enabled = query.isNotEmpty()
-                ) {
-                    Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
-                    Spacer(Modifier.width(4.dp))
-                    Text(stringResource(R.string.search_save_filters))
-                }
-            }
-            if (savedSearches.isNotEmpty()) {
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    savedSearches.forEach { saved ->
-                        InputChip(
-                            selected = false,
-                            onClick = {
-                                query = saved.query
-                                selectedCategory = saved.category.ifBlank { "0_0" }
-                            },
-                            label = { Text(saved.label) },
-                            leadingIcon = {
-                                Icon(Icons.Default.Bookmark, contentDescription = null, modifier = Modifier.size(18.dp))
-                            },
-                            trailingIcon = {
-                                Icon(
-                                    Icons.Default.Close,
-                                    contentDescription = stringResource(R.string.cd_delete),
-                                    modifier = Modifier
-                                        .size(18.dp)
-                                        .clickable { onDeleteSearch(saved) }
-                                )
-                            },
-                            colors = InputChipDefaults.inputChipColors(
-                                containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                                labelColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                                leadingIconColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                                trailingIconColor = MaterialTheme.colorScheme.onSecondaryContainer
-                            )
-                        )
+            // --- Uploader (Nyaa u= param), right under the keywords for quick access ---
+            OutlinedTextField(
+                value = uploader,
+                onValueChange = { uploader = it },
+                label = { Text(stringResource(R.string.search_uploader)) },
+                leadingIcon = { Icon(Icons.Default.Person, contentDescription = null) },
+                trailingIcon = {
+                    if (uploader.isNotEmpty()) {
+                        IconButton(onClick = { uploader = "" }) {
+                            Icon(Icons.Default.Close, contentDescription = stringResource(R.string.action_reset))
+                        }
                     }
-                }
-            }
+                },
+                singleLine = true,
+                shape = RoundedCornerShape(16.dp),
+                modifier = Modifier.fillMaxWidth()
+            )
 
             // --- Category: main then sub ---
             SectionLabel(stringResource(R.string.search_category))
@@ -301,6 +276,52 @@ fun AdvancedSearchDialog(
                 ) { Text(stringResource(R.string.order_ascending)) }
             }
 
+            // --- Saved filters (moved to the bottom for easy thumb reach on mobile) ---
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                SectionLabel(stringResource(R.string.search_quick_filters))
+                Spacer(Modifier.weight(1f))
+                TextButton(
+                    onClick = { showSaveDialog = true },
+                    enabled = query.isNotEmpty()
+                ) {
+                    Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(4.dp))
+                    Text(stringResource(R.string.search_save_filters))
+                }
+            }
+            if (savedSearches.isNotEmpty()) {
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    savedSearches.forEach { saved ->
+                        InputChip(
+                            selected = false,
+                            onClick = {
+                                query = saved.query
+                                selectedCategory = saved.category.ifBlank { "0_0" }
+                            },
+                            label = { Text(saved.label) },
+                            leadingIcon = {
+                                Icon(Icons.Default.Bookmark, contentDescription = null, modifier = Modifier.size(18.dp))
+                            },
+                            trailingIcon = {
+                                Icon(
+                                    Icons.Default.Close,
+                                    contentDescription = stringResource(R.string.cd_delete),
+                                    modifier = Modifier
+                                        .size(18.dp)
+                                        .clickable { onDeleteSearch(saved) }
+                                )
+                            },
+                            colors = InputChipDefaults.inputChipColors(
+                                containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                                labelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                                leadingIconColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                                trailingIconColor = MaterialTheme.colorScheme.onSecondaryContainer
+                            )
+                        )
+                    }
+                }
+            }
+
             // --- Bottom actions: reset + search only ---
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -310,6 +331,7 @@ fun AdvancedSearchDialog(
                 OutlinedButton(
                     onClick = {
                         query = ""
+                        uploader = ""
                         selectedCategory = "0_0"
                         selectedSort = "id"
                         isDescending = true
@@ -320,7 +342,7 @@ fun AdvancedSearchDialog(
 
                 Button(
                     onClick = {
-                        onSearch(query, selectedCategory, selectedSort, if (isDescending) "desc" else "asc", selectedFilter)
+                        onSearch(query, selectedCategory, selectedSort, if (isDescending) "desc" else "asc", selectedFilter, uploader)
                     },
                     shape = RoundedCornerShape(14.dp),
                     modifier = Modifier

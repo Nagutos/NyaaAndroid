@@ -138,14 +138,15 @@ fun HomeScreen(
                 if (showSearchDialog) {
                     AdvancedSearchDialog(
                         initialQuery = viewModel.searchQuery,
+                        initialUser = viewModel.searchUser ?: "",
                         initialCategory = viewModel.searchCategory,
                         initialSort = viewModel.searchSort,
                         initialOrder = viewModel.searchOrder,
                         initialFilter = viewModel.searchFilter,
                         savedSearches = savedSearches,
                         onDismiss = { showSearchDialog = false },
-                        onSearch = { query, category, sort, order, filter ->
-                            viewModel.onSearch(query, category, sort, order, filter)
+                        onSearch = { query, category, sort, order, filter, user ->
+                            viewModel.onSearch(query, category, sort, order, filter, user)
                             showSearchDialog = false
                         },
                         onSaveSearch = { label, query, category, sort, order ->
