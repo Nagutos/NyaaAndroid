@@ -90,6 +90,40 @@
     <string name="search_name_filter">Nommer ce filtre</string>
     <string name="search_filter_name_hint">Nom (ex: Anime VOSTFR)</string>
 
+    <!-- Search: categories -->
+    <string name="category_all">Toutes</string>
+    <string name="category_anime">Anime</string>
+    <string name="category_audio">Audio</string>
+    <string name="category_literature">Littérature</string>
+    <string name="category_live_action">Live Action</string>
+    <string name="category_pictures">Images</string>
+    <string name="category_software">Software</string>
+
+    <!-- Search: sub-categories -->
+    <string name="subcategory_all">Tous</string>
+    <string name="subcategory_amv">AMV</string>
+    <string name="subcategory_english">Anglais</string>
+    <string name="subcategory_non_english">Non-anglais</string>
+    <string name="subcategory_raw">Raw</string>
+    <string name="subcategory_lossless">Lossless</string>
+    <string name="subcategory_lossy">Lossy</string>
+    <string name="subcategory_idol_pv">Idol/PV</string>
+    <string name="subcategory_graphics">Graphismes</string>
+    <string name="subcategory_photos">Photos</string>
+    <string name="subcategory_apps">Applis</string>
+    <string name="subcategory_games">Jeux</string>
+
+    <!-- Search: sort options -->
+    <string name="sort_date">Date</string>
+    <string name="sort_size">Taille</string>
+    <string name="sort_seeders">Seeders</string>
+    <string name="sort_leechers">Leechers</string>
+    <string name="sort_completed">Complétés</string>
+
+    <!-- Search: order -->
+    <string name="order_descending">Décroissant</string>
+    <string name="order_ascending">Croissant</string>
+
     <!-- Nyaa quality filter (f= param) -->
     <string name="search_filter_label">Filtre</string>
     <string name="search_filter_none">Aucun</string>

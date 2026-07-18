@@ -52,44 +52,45 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.annotation.StringRes
 import com.nagutos.nyaaandroid.R
 import com.nagutos.nyaaandroid.data.local.entity.SavedSearch
 
-private data class SubCategory(val label: String, val code: String)
-private data class MainCategory(val label: String, val id: String, val subs: List<SubCategory>)
+private data class SubCategory(@StringRes val labelRes: Int, val code: String)
+private data class MainCategory(@StringRes val labelRes: Int, val id: String, val subs: List<SubCategory>)
 
-// Nyaa taxonomy kept as domain data (drives the c=<id> query param). Only the chrome text
-// around it is localized via string resources.
+// Nyaa taxonomy kept as domain data (drives the c=<id> query param). Labels are string
+// resources so the whole sheet follows the app language.
 private val MAIN_CATEGORIES = listOf(
-    MainCategory("Toutes", "0", emptyList()),
-    MainCategory("Anime", "1", listOf(
-        SubCategory("AMV", "1_1"), SubCategory("English", "1_2"),
-        SubCategory("Non-English", "1_3"), SubCategory("Raw", "1_4"),
+    MainCategory(R.string.category_all, "0", emptyList()),
+    MainCategory(R.string.category_anime, "1", listOf(
+        SubCategory(R.string.subcategory_amv, "1_1"), SubCategory(R.string.subcategory_english, "1_2"),
+        SubCategory(R.string.subcategory_non_english, "1_3"), SubCategory(R.string.subcategory_raw, "1_4"),
     )),
-    MainCategory("Audio", "2", listOf(
-        SubCategory("Lossless", "2_1"), SubCategory("Lossy", "2_2"),
+    MainCategory(R.string.category_audio, "2", listOf(
+        SubCategory(R.string.subcategory_lossless, "2_1"), SubCategory(R.string.subcategory_lossy, "2_2"),
     )),
-    MainCategory("Littérature", "3", listOf(
-        SubCategory("English", "3_1"), SubCategory("Non-English", "3_2"), SubCategory("Raw", "3_3"),
+    MainCategory(R.string.category_literature, "3", listOf(
+        SubCategory(R.string.subcategory_english, "3_1"), SubCategory(R.string.subcategory_non_english, "3_2"), SubCategory(R.string.subcategory_raw, "3_3"),
     )),
-    MainCategory("Live Action", "4", listOf(
-        SubCategory("English", "4_1"), SubCategory("Idol/PV", "4_2"),
-        SubCategory("Non-English", "4_3"), SubCategory("Raw", "4_4"),
+    MainCategory(R.string.category_live_action, "4", listOf(
+        SubCategory(R.string.subcategory_english, "4_1"), SubCategory(R.string.subcategory_idol_pv, "4_2"),
+        SubCategory(R.string.subcategory_non_english, "4_3"), SubCategory(R.string.subcategory_raw, "4_4"),
     )),
-    MainCategory("Images", "5", listOf(
-        SubCategory("Graphics", "5_1"), SubCategory("Photos", "5_2"),
+    MainCategory(R.string.category_pictures, "5", listOf(
+        SubCategory(R.string.subcategory_graphics, "5_1"), SubCategory(R.string.subcategory_photos, "5_2"),
     )),
-    MainCategory("Software", "6", listOf(
-        SubCategory("Apps", "6_1"), SubCategory("Games", "6_2"),
+    MainCategory(R.string.category_software, "6", listOf(
+        SubCategory(R.string.subcategory_apps, "6_1"), SubCategory(R.string.subcategory_games, "6_2"),
     )),
 )
 
 private val SORT_OPTIONS = listOf(
-    "Date" to "id",
-    "Taille" to "size",
-    "Seeders" to "seeders",
-    "Leechers" to "leechers",
-    "Complétés" to "downloads",
+    R.string.sort_date to "id",
+    R.string.sort_size to "size",
+    R.string.sort_seeders to "seeders",
+    R.string.sort_leechers to "leechers",
+    R.string.sort_completed to "downloads",
 )
 
 // Nyaa "f=" filter param: 0 = no filter, 1 = no remakes, 2 = trusted only.
@@ -226,7 +227,7 @@ fun AdvancedSearchDialog(
                     FilterChip(
                         selected = selected,
                         onClick = { selectedCategory = "${main.id}_0" },
-                        label = { Text(main.label) },
+                        label = { Text(stringResource(main.labelRes)) },
                         leadingIcon = if (selected) {
                             { Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(18.dp)) }
                         } else null
@@ -240,7 +241,7 @@ fun AdvancedSearchDialog(
                     FilterChip(
                         selected = allSelected,
                         onClick = { selectedCategory = "${selectedMain.id}_0" },
-                        label = { Text("Tous") },
+                        label = { Text(stringResource(R.string.subcategory_all)) },
                         colors = FilterChipDefaults.filterChipColors(
                             selectedContainerColor = MaterialTheme.colorScheme.tertiaryContainer,
                             selectedLabelColor = MaterialTheme.colorScheme.onTertiaryContainer
@@ -250,7 +251,7 @@ fun AdvancedSearchDialog(
                         FilterChip(
                             selected = selectedCategory == sub.code,
                             onClick = { selectedCategory = sub.code },
-                            label = { Text(sub.label) },
+                            label = { Text(stringResource(sub.labelRes)) },
                             colors = FilterChipDefaults.filterChipColors(
                                 selectedContainerColor = MaterialTheme.colorScheme.tertiaryContainer,
                                 selectedLabelColor = MaterialTheme.colorScheme.onTertiaryContainer
@@ -263,11 +264,11 @@ fun AdvancedSearchDialog(
             // --- Sort ---
             SectionLabel(stringResource(R.string.search_sort_by))
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                SORT_OPTIONS.forEach { (label, code) ->
+                SORT_OPTIONS.forEach { (labelRes, code) ->
                     FilterChip(
                         selected = selectedSort == code,
                         onClick = { selectedSort = code },
-                        label = { Text(label) }
+                        label = { Text(stringResource(labelRes)) }
                     )
                 }
             }
@@ -291,13 +292,13 @@ fun AdvancedSearchDialog(
                     onClick = { isDescending = true },
                     shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2),
                     icon = { Icon(Icons.Default.ArrowDownward, contentDescription = null, modifier = Modifier.size(18.dp)) }
-                ) { Text("Décroissant") }
+                ) { Text(stringResource(R.string.order_descending)) }
                 SegmentedButton(
                     selected = !isDescending,
                     onClick = { isDescending = false },
                     shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2),
                     icon = { Icon(Icons.Default.ArrowUpward, contentDescription = null, modifier = Modifier.size(18.dp)) }
-                ) { Text("Croissant") }
+                ) { Text(stringResource(R.string.order_ascending)) }
             }
 
             // --- Bottom actions: reset + search only ---
