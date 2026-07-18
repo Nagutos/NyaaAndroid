@@ -11,7 +11,10 @@ data class TorrentUI(
     val downloads: Int,
     val linkUrl: String,
     val detailUrl: String,
-    val commentsCount: Int = 0
+    val commentsCount: Int = 0,
+    // Nyaa colour-codes list rows: a "success" row is trusted, a "danger" row is a remake.
+    val isTrusted: Boolean = false,
+    val isRemake: Boolean = false
 )
 
 data class TorrentDetail(

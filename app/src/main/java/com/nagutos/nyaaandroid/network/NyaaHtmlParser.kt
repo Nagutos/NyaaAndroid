@@ -51,6 +51,11 @@ object NyaaHtmlParser {
 
         val fullCategoryLabel = getCategoryLabel(categoryId)
 
+        // Nyaa flags each row with a Bootstrap contextual class:
+        // "success" = trusted uploader (green), "danger" = remake (red).
+        val isTrusted = row.hasClass("success")
+        val isRemake = row.hasClass("danger")
+
         return TorrentUI(
             id = id,
             title = title,
@@ -61,7 +66,9 @@ object NyaaHtmlParser {
             leechers = leechers,
             downloads = downloads,
             linkUrl = magnet,
-            detailUrl = detailUrl
+            detailUrl = detailUrl,
+            isTrusted = isTrusted,
+            isRemake = isRemake
         )
     }
 

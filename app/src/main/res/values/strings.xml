@@ -91,4 +91,8 @@
     <string name="search_filter_none">Aucun</string>
     <string name="search_filter_no_remakes">Sans remakes</string>
     <string name="search_filter_trusted">Trusted uniquement</string>
+
+    <!-- Trusted / remake badges on list rows -->
+    <string name="badge_trusted">Trusted</string>
+    <string name="badge_remake">Remake</string>
 </resources>

@@ -1,5 +1,6 @@
 package com.nagutos.nyaaandroid.ui.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -49,10 +50,18 @@ fun TorrentItem(
     onToggleFavorite: () -> Unit,
     onClick: () -> Unit
 ) {
+    // Nyaa marks trusted rows green and remake rows red; mirror that with a card border.
+    val accentBorder = when {
+        torrent.isTrusted -> BorderStroke(1.5.dp, NyaaTheme.colors.seeder)
+        torrent.isRemake -> BorderStroke(1.5.dp, MaterialTheme.colorScheme.error)
+        else -> null
+    }
+
     Card(
         shape = RoundedCornerShape(18.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        border = accentBorder,
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onClick() }
@@ -79,13 +88,29 @@ fun TorrentItem(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // Size + date
+                // Size + date + trust status
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     BadgeInfo(
                         text = torrent.size,
                         color = MaterialTheme.colorScheme.secondaryContainer,
                         textColor = MaterialTheme.colorScheme.onSecondaryContainer
                     )
+                    if (torrent.isTrusted) {
+                        Spacer(modifier = Modifier.width(8.dp))
+                        BadgeInfo(
+                            text = stringResource(R.string.badge_trusted),
+                            color = NyaaTheme.colors.seeder.copy(alpha = 0.18f),
+                            textColor = NyaaTheme.colors.seeder
+                        )
+                    }
+                    if (torrent.isRemake) {
+                        Spacer(modifier = Modifier.width(8.dp))
+                        BadgeInfo(
+                            text = stringResource(R.string.badge_remake),
+                            color = MaterialTheme.colorScheme.errorContainer,
+                            textColor = MaterialTheme.colorScheme.onErrorContainer
+                        )
+                    }
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
                         text = torrent.date,
