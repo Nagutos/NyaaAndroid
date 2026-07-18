@@ -34,6 +34,10 @@
     <string name="theme_dark">Thème Sombre (Gris Classique)</string>
     <string name="theme_amoled">Thème AMOLED (Noir Pur)</string>
     <string name="theme_system">Système (Par défaut)</string>
+    <string name="settings_language">Langue</string>
+    <string name="language_system">Système (Par défaut)</string>
+    <string name="language_french">Français</string>
+    <string name="language_english">Anglais (English)</string>
 
     <!-- Torrent list / pagination -->
     <string name="cd_previous">Précédent</string>

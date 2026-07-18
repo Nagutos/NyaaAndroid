@@ -1,5 +1,6 @@
 package com.nagutos.nyaaandroid
 
+import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -27,6 +28,7 @@ import com.nagutos.nyaaandroid.ui.screens.home.HomeScreen
 import com.nagutos.nyaaandroid.ui.screens.settings.SettingsScreen
 import com.nagutos.nyaaandroid.ui.theme.NyaaAndroidTheme
 import com.nagutos.nyaaandroid.utils.AppTheme
+import com.nagutos.nyaaandroid.utils.LocaleManager
 import com.nagutos.nyaaandroid.utils.ThemePreferences
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.nagutos.nyaaandroid.data.local.entity.FavoriteTorrent
@@ -35,6 +37,12 @@ import com.nagutos.nyaaandroid.ui.screens.favorites.FavoritesViewModelFactory
 import java.net.URLEncoder
 
 class MainActivity : ComponentActivity() {
+
+    // Apply the saved in-app language before any resource is resolved.
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(LocaleManager.applySavedLocale(newBase))
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()

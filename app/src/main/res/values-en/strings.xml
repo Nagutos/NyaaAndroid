@@ -1,0 +1,107 @@
+<resources>
+    <string name="app_name">NyaaAndroid</string>
+
+    <!-- Navigation -->
+    <string name="nav_search">Search</string>
+    <string name="nav_favorites">Favorites</string>
+
+    <!-- Common actions -->
+    <string name="action_settings">Settings</string>
+    <string name="action_back">Back</string>
+    <string name="action_retry">Retry</string>
+    <string name="action_search">Search</string>
+    <string name="action_reset">Reset</string>
+    <string name="action_cancel">Cancel</string>
+
+    <!-- Home -->
+    <string name="home_title">Nyaa Torrent</string>
+    <string name="home_filter_recent">Recent</string>
+    <string name="home_filter_uploader">Uploader: %1$s</string>
+    <string name="home_subtitle_page">%1$s (Page %2$d)</string>
+
+    <!-- Favorites -->
+    <string name="favorites_title">My Favorites</string>
+    <string name="favorites_empty">No favorites yet.</string>
+    <plurals name="favorites_count">
+        <item quantity="one">%d saved torrent</item>
+        <item quantity="other">%d saved torrents</item>
+    </plurals>
+
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_appearance">Appearance</string>
+    <string name="theme_light">Light theme</string>
+    <string name="theme_dark">Dark theme (Classic grey)</string>
+    <string name="theme_amoled">AMOLED theme (True black)</string>
+    <string name="theme_system">System (Default)</string>
+    <string name="settings_language">Language</string>
+    <string name="language_system">System (Default)</string>
+    <string name="language_french">French (Français)</string>
+    <string name="language_english">English</string>
+
+    <!-- Torrent list / pagination -->
+    <string name="cd_previous">Previous</string>
+    <string name="cd_next">Next</string>
+    <string name="page_label">Page %1$d</string>
+
+    <!-- Empty / error states -->
+    <string name="empty_more_results">No more results on page %1$d.</string>
+    <string name="empty_go_back">Back to previous page</string>
+    <string name="empty_no_results">No results found for this search.</string>
+    <string name="error_prefix">Error: %1$s</string>
+
+    <!-- Detail -->
+    <string name="detail_title">Torrent Details</string>
+    <string name="detail_error_title">Oops! Failed to load.</string>
+    <string name="detail_submitter_anonymous">Anonymous</string>
+    <string name="stat_size">Size</string>
+    <string name="stat_seeders">Seeders</string>
+    <string name="stat_leechers">Leechers</string>
+    <string name="stat_completed">Completed</string>
+    <string name="detail_hash">Hash: %1$s</string>
+    <string name="action_open_magnet">Open Magnet</string>
+    <string name="cd_favorite">Favorite</string>
+    <string name="cd_share">Share</string>
+    <string name="detail_description">Description</string>
+    <string name="detail_files">Files</string>
+    <string name="detail_files_count">Files (%1$d)</string>
+    <string name="detail_comments_header">Comments (%1$d)</string>
+    <string name="detail_comments_empty">No comments yet.</string>
+    <string name="detail_share_message">Check out this torrent: %1$s\n\nLink: https://nyaa.si%2$s</string>
+
+    <!-- Image viewer -->
+    <string name="cd_zoom">Zoom</string>
+    <string name="action_close">Close</string>
+
+    <!-- Comments -->
+    <string name="cd_avatar">%1$s\'s avatar</string>
+
+    <!-- Advanced search dialog -->
+    <string name="search_dialog_title">Advanced Search</string>
+    <string name="search_keywords">Keywords</string>
+    <string name="search_category">Category</string>
+    <string name="search_sort_by">Sort by</string>
+    <string name="cd_change_order">Change order</string>
+    <string name="search_sort_desc_hint">Sort: Descending (Largest to smallest)</string>
+    <string name="search_sort_asc_hint">Sort: Ascending (Smallest to largest)</string>
+    <string name="search_quick_filters">My quick filters</string>
+    <string name="cd_delete">Delete</string>
+    <string name="search_save_filters">Save these filters</string>
+    <string name="search_name_filter">Name this filter</string>
+    <string name="search_filter_name_hint">Name (e.g. Anime English)</string>
+
+    <!-- Nyaa quality filter (f= param) -->
+    <string name="search_filter_label">Filter</string>
+    <string name="search_filter_none">None</string>
+    <string name="search_filter_no_remakes">No remakes</string>
+    <string name="search_filter_trusted">Trusted only</string>
+
+    <!-- Trusted / remake badges on list rows -->
+    <string name="badge_trusted">Trusted</string>
+    <string name="badge_remake">Remake</string>
+
+    <!-- .torrent file download -->
+    <string name="action_download_torrent">Download .torrent</string>
+    <string name="download_torrent_started">Downloading the .torrent file…</string>
+    <string name="download_torrent_error">Unable to open the .torrent file.</string>
+</resources>
