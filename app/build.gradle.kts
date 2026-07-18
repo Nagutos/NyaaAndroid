@@ -1,4 +1,15 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.io.FileInputStream
+import java.util.Properties
+
+// Load signing credentials from keystore.properties (kept out of version control).
+// Absent file => release stays unsigned, but debug builds keep working.
+val keystorePropertiesFile = rootProject.file("keystore.properties")
+val keystoreProperties = Properties().apply {
+    if (keystorePropertiesFile.exists()) {
+        FileInputStream(keystorePropertiesFile).use { load(it) }
+    }
+}
 
 plugins {
     // AGP 9 has built-in Kotlin support: no separate kotlin-android plugin needed.
@@ -23,9 +34,25 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        create("release") {
+            // Only populated when keystore.properties exists, so cloning the repo
+            // without secrets still configures (debug builds are unaffected).
+            if (keystorePropertiesFile.exists()) {
+                storeFile = rootProject.file(keystoreProperties["storeFile"] as String)
+                storePassword = keystoreProperties["storePassword"] as String
+                keyAlias = keystoreProperties["keyAlias"] as String
+                keyPassword = keystoreProperties["keyPassword"] as String
+            }
+        }
+    }
+
     buildTypes {
         release {
+            // R8/minification left off: this app relies on reflection (Retrofit) and
+            // Jsoup/Markwon; enabling it needs keep rules and its own testing pass.
             isMinifyEnabled = false
+            signingConfig = signingConfigs.getByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
