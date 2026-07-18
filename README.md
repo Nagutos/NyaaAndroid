@@ -1,52 +1,119 @@
-# 🐾 NyaaAndroid
+# NyaaAndroid
 
-A modern, high-performance native Android client for **Nyaa.si**, built with **Kotlin 2.0** and **Jetpack Compose**.  
-Designed for speed, readability, and a seamless mobile experience.
+A native Android client for [Nyaa.si](https://nyaa.si), built with Kotlin and Jetpack
+Compose. It provides a fast, readable mobile experience for browsing, searching, and
+retrieving torrents, backed by an MVVM architecture and an HTML-scraping data layer
+(Nyaa exposes no public API).
 
----
+## Features
 
-## ✨ Features
+### Discovery and search
+- Category browsing across all Nyaa categories (Anime, Audio, Literature, Live Action,
+  Pictures, Software) with full sub-category support.
+- Keyword search and dedicated uploader search (`user:username`).
+- Native quality filter (`No remakes` / `Trusted only`), exposed in the advanced search
+  sheet.
+- Sorting by date, size, seeders, leechers, or completed downloads, in either order.
+- Saved searches pinned as quick-access chips.
+- Paginated results with pull-to-refresh.
 
-### 📖 Advanced Markdown Rendering
-* **Smart Hybrid Tables**: Automatically detects content types. Data tables stay horizontal, while screenshot-heavy tables are transformed into **vertical lists** for better mobile visibility.
-* **Interactive Image Gallery**: One-tap to zoom. Click any image within a description to open a high-resolution full-screen preview.
-* **Sanitized Content**: Advanced regex cleaning to handle Nyaa's specific Markdown quirks, BBCode remnants, and broken pipe structures.
+### Torrent interaction
+- One-tap magnet handoff to any installed torrent client (Flud, LibreTorrent, etc.).
+- Direct `.torrent` file download for clients that prefer it over magnet links.
+- Trusted / remake indicators that mirror Nyaa's row colour coding (green for trusted
+  uploads, red for remakes).
+- Local favorites, persisted with Room for offline access.
+- Native share sheet integration.
+- Full tree view of a torrent's file contents before downloading.
 
-### 🔍 Discovery & Search
-* **Deep Filtering**: Browse by categories (Anime, Audio, Literature, Live Action, etc.) with precise sub-category support.
-* **Powerful Search**: Supports advanced queries (e.g., `user:username` or specific keywords).
-* **Seamless Pagination**: Fast and fluid navigation through thousands of torrents.
+### Content rendering
+- Adaptive Markdown rendering: data tables stay horizontal, while screenshot-heavy
+  tables are reflowed into vertical lists for readability on mobile.
+- Full-screen image viewer with pinch and double-tap zoom.
+- Content sanitisation that handles Nyaa's Markdown quirks, BBCode remnants, and
+  malformed table structures.
 
-### ⚡ Torrent Interaction
-* **One-Tap Magnet**: Direct integration to launch your favorite torrent client (Flud, LibreTorrent, etc.).
-* **Favorites System**: Save your must-watch torrents locally for quick access.
-* **Share Integration**: Instantly share torrent links with your friends.
-* **File Browser**: Full tree-view of torrent contents before you even start the download.
+### Interface
+- Material 3 (Material You) design.
+- Four themes: Light, Dark, AMOLED, and System-default.
+- Category badges and colour-coded seeder / leecher health indicators.
 
-### 🎨 Premium UI/UX
-* **Material 3 Design**: Fully compliant with the latest Android design standards (Material You).
-* **Multi-Theme Support**:
-    * **Light Mode** (Clean & Crisp)
-    * **Dark Mode** (Soft Grey)
-    * **AMOLED Mode** (True Black for battery saving and visual comfort)
-* **Dynamic Visuals**: Category-specific Kanji badges and color-coded health indicators (Seeds/Leechers).
+## Tech stack
 
----
+| Concern | Choice |
+|---|---|
+| Language | [Kotlin](https://kotlinlang.org/) 2.2 |
+| UI | [Jetpack Compose](https://developer.android.com/jetpack/compose) with Material 3 |
+| Architecture | MVVM (Model-View-ViewModel) |
+| Networking | [Retrofit](https://square.github.io/retrofit/) and OkHttp |
+| HTML parsing | [Jsoup](https://jsoup.org/) |
+| Markdown | [Markwon](https://github.com/noties/Markwon) |
+| Image loading | [Coil](https://coil-kt.github.io/coil/) |
+| Local storage | [Room](https://developer.android.com/training/data-storage/room) |
+| Preferences | Jetpack DataStore |
+| Build | Android Gradle Plugin 9, Gradle 9.6 |
 
-## 🛠 Tech Stack
+## Architecture
 
-* **Language**: [Kotlin 2.0](https://kotlinlang.org/) (The latest & greatest)
-* **UI Framework**: [Jetpack Compose](https://developer.android.com/jetpack/compose)
-* **Architecture**: MVVM (Model-View-ViewModel)
-* **Markdown Engine**: [Markwon](https://github.com/noties/Markwon) (Extensively customized)
-* **Image Loading**: [Coil](https://coil-kt.github.io/coil/) (With custom Span interceptors)
-* **Networking**: [Jsoup](https://jsoup.org/) for high-speed HTML parsing
-* **Dependency Injection**: Manual / ViewModel Factories
+NyaaAndroid follows a light MVVM layering. Because Nyaa exposes no JSON API, the network
+layer fetches raw HTML and parses it into domain models with Jsoup; every layer above the
+`network` package works exclusively with clean Kotlin data classes.
 
----
+```
+UI (Compose)  ->  ViewModel  ->  Repository  ->  ApiService (Retrofit)
+     ^               |               |                    |
+     +---- UiState --+          Jsoup parsing <------ raw HTML
+       (Loading /                     |
+        Success /              domain models
+        Error)            (TorrentUI, TorrentDetail)
+```
 
-## 📦 Installation
+See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for a full breakdown of each layer, the
+Nyaa query parameters, and the HTML-scraping strategy.
 
-1. Clone the repository:
-   ```bash
-   git clone [https://github.com/Nagutos/NyaaAndroid.git](https://github.com/Nagutos/NyaaAndroid.git)
+## Requirements
+
+- JDK 17 or newer (JDK 26 is supported by the bundled Gradle 9.6).
+- Android SDK with Build Tools 36 (Android 16 / API 36).
+- A recent Android Studio (Narwhal or newer) is recommended.
+
+## Build and run
+
+```bash
+# Clone
+git clone https://github.com/Nagutos/NyaaAndroid.git
+cd NyaaAndroid
+
+# Build a debug APK
+./gradlew assembleDebug
+
+# Or install directly onto a connected device
+./gradlew installDebug
+```
+
+The APK is written to `app/build/outputs/apk/debug/`.
+
+> If Gradle picks up an unsupported JDK, point it at a compatible one explicitly, for
+> example `export JAVA_HOME=/usr/lib/jvm/java-17-openjdk`.
+
+## Project structure
+
+```
+app/src/main/java/com/nagutos/nyaaandroid/
+├── model/            Domain data classes (TorrentUI, TorrentDetail, Comment, TorrentFile)
+├── network/          Retrofit service and Jsoup HTML parser
+├── data/
+│   ├── repository/   TorrentRepository, FavoriteRepository
+│   └── local/entity/ Room database, DAOs, entities, migrations
+├── ui/
+│   ├── screens/      home / detail / favorites / settings
+│   ├── components/   Reusable Compose widgets
+│   ├── helpers/      Category colours and icons, scrollbar
+│   └── theme/        Material 3 theme, colours, typography
+└── utils/            ThemePreferences (DataStore)
+```
+
+## License
+
+Provided for educational purposes. Nyaa.si content and trademarks belong to their
+respective owners.
