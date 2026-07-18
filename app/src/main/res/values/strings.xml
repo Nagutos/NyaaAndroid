@@ -95,4 +95,9 @@
     <!-- Trusted / remake badges on list rows -->
     <string name="badge_trusted">Trusted</string>
     <string name="badge_remake">Remake</string>
+
+    <!-- .torrent file download -->
+    <string name="action_download_torrent">Télécharger le .torrent</string>
+    <string name="download_torrent_started">Téléchargement du fichier .torrent…</string>
+    <string name="download_torrent_error">Impossible d\'ouvrir le fichier .torrent.</string>
 </resources>

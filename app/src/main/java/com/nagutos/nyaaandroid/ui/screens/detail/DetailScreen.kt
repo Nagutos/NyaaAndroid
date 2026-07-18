@@ -3,6 +3,7 @@ package com.nagutos.nyaaandroid.ui.screens.detail
 import android.app.Application
 import android.content.Intent
 import android.net.Uri
+import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -10,6 +11,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.SaveAlt
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -231,61 +233,105 @@ fun TorrentDetailView(
             }
         }
 
-        // --- MAGNET, FAV and SHARE BUTTON ---
+        // --- ACTIONS: magnet + .torrent stacked on the left, favorite + share stacked on the right ---
         item {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp), // Espace entre les boutons
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Button(
-                    onClick = {
-                        try {
-                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(detail.magnetLink))
-                            context.startActivity(intent)
-                        } catch (_: Exception) {
-                        }
-                    },
+                // Primary download actions, sharing the same filled style.
+                Column(
                     modifier = Modifier.weight(1f),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary
-                    ),
-                    shape = RoundedCornerShape(12.dp),
-                    contentPadding = PaddingValues(vertical = 12.dp)
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Icon(Icons.Default.Download, contentDescription = null)
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Text(stringResource(R.string.action_open_magnet))
-                }
-                FilledTonalIconButton(
-                    onClick = onToggleFavorite,
-                    modifier = Modifier.size(52.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = IconButtonDefaults.filledTonalIconButtonColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant
-                    )
-                ) {
-                    Icon(
-                        imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                        contentDescription = stringResource(R.string.cd_favorite),
-                        tint = if (isFavorite) NyaaTheme.colors.favorite else MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-                IconButton(
-                    onClick = {
-                        val sendIntent = Intent().apply {
-                            action = Intent.ACTION_SEND
-                            putExtra(Intent.EXTRA_TEXT, context.getString(R.string.detail_share_message, detail.title, url))
-                            type = "text/plain"
-                        }
-                        val shareIntent = Intent.createChooser(sendIntent, null)
-                        context.startActivity(shareIntent)
+                    Button(
+                        onClick = {
+                            try {
+                                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(detail.magnetLink))
+                                context.startActivity(intent)
+                            } catch (_: Exception) {
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary
+                        ),
+                        shape = RoundedCornerShape(12.dp),
+                        contentPadding = PaddingValues(vertical = 12.dp)
+                    ) {
+                        Icon(Icons.Default.Download, contentDescription = null)
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text(stringResource(R.string.action_open_magnet))
                     }
-                ) {
-                    Icon(Icons.Default.Share, contentDescription = stringResource(R.string.cd_share), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                    if (detail.torrentFile.isNotBlank()) {
+                        Button(
+                            onClick = {
+                                try {
+                                    val fileUrl = normalizeTorrentUrl(detail.torrentFile)
+                                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(fileUrl))
+                                    context.startActivity(intent)
+                                    Toast.makeText(context, R.string.download_torrent_started, Toast.LENGTH_SHORT).show()
+                                } catch (_: Exception) {
+                                    Toast.makeText(context, R.string.download_torrent_error, Toast.LENGTH_SHORT).show()
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.primary,
+                                contentColor = MaterialTheme.colorScheme.onPrimary
+                            ),
+                            shape = RoundedCornerShape(12.dp),
+                            contentPadding = PaddingValues(vertical = 12.dp)
+                        ) {
+                            Icon(Icons.Default.SaveAlt, contentDescription = null)
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Text(stringResource(R.string.action_download_torrent))
+                        }
+                    }
+                }
+
+                // Secondary actions, stacked to mirror the two primary buttons.
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    FilledTonalIconButton(
+                        onClick = onToggleFavorite,
+                        modifier = Modifier.size(52.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = IconButtonDefaults.filledTonalIconButtonColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceVariant
+                        )
+                    ) {
+                        Icon(
+                            imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                            contentDescription = stringResource(R.string.cd_favorite),
+                            tint = if (isFavorite) NyaaTheme.colors.favorite else MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    FilledTonalIconButton(
+                        onClick = {
+                            val sendIntent = Intent().apply {
+                                action = Intent.ACTION_SEND
+                                putExtra(Intent.EXTRA_TEXT, context.getString(R.string.detail_share_message, detail.title, url))
+                                type = "text/plain"
+                            }
+                            val shareIntent = Intent.createChooser(sendIntent, null)
+                            context.startActivity(shareIntent)
+                        },
+                        modifier = Modifier.size(52.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = IconButtonDefaults.filledTonalIconButtonColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceVariant
+                        )
+                    ) {
+                        Icon(
+                            Icons.Default.Share,
+                            contentDescription = stringResource(R.string.cd_share),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
             }
         }
@@ -343,4 +389,16 @@ fun TorrentDetailView(
             }
         }
     }
+}
+
+/**
+ * Nyaa's ".torrent" links are stored relative (e.g. "/download/1234.torrent" or
+ * "//nyaa.si/download/..."). Resolve them to an absolute https URL the browser /
+ * download manager can open.
+ */
+private fun normalizeTorrentUrl(raw: String): String = when {
+    raw.startsWith("http") -> raw
+    raw.startsWith("//") -> "https:$raw"
+    raw.startsWith("/") -> "https://nyaa.si$raw"
+    else -> "https://nyaa.si/$raw"
 }
