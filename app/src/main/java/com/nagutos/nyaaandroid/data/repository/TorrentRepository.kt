@@ -9,6 +9,7 @@ import com.nagutos.nyaaandroid.network.NyaaNetwork
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.HttpUrl.Companion.toHttpUrl
+import java.net.URI
 
 /**
  * Single entry point for fetching torrent data from nyaa.si / sukebei.nyaa.si.
@@ -45,6 +46,7 @@ class TorrentRepository(
 
     /** Fetch the raw bytes of a resource (e.g. a .torrent file) for saving to user storage. */
     suspend fun downloadBytes(url: String): ByteArray = withContext(Dispatchers.IO) {
+        requireNyaaHost(url)
         api.getHtml(url).bytes()
     }
 
@@ -52,7 +54,19 @@ class TorrentRepository(
         // detailUrl is absolute for new listings; older favorites may still hold a relative
         // "/view/id", which predates Sukebei support and is therefore always a nyaa.si link.
         val absolute = if (url.startsWith("http")) url else "${NyaaSite.NYAA.baseUrl}$url"
+        requireNyaaHost(absolute)
         val body = api.getHtml(absolute)
         NyaaHtmlParser.parseDetail(body.string())
+    }
+
+    /**
+     * Guard against fetching an arbitrary URL smuggled in through parsed HTML (a rogue listing
+     * could point a detail/.torrent link at any host). We only ever talk to the known indexes.
+     */
+    private fun requireNyaaHost(url: String) {
+        val host = runCatching { URI(url).host?.lowercase() }.getOrNull()
+        require(host == "nyaa.si" || host == "sukebei.nyaa.si") {
+            "Refusing request to untrusted host: $host"
+        }
     }
 }

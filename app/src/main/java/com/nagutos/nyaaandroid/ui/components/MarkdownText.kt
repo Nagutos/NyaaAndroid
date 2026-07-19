@@ -47,6 +47,7 @@ import coil.request.ImageRequest
 import androidx.core.text.method.LinkMovementMethodCompat
 import android.text.style.ClickableSpan
 import io.noties.markwon.MarkwonConfiguration
+import io.noties.markwon.LinkResolverDef
 import io.noties.markwon.image.ImageSizeResolverDef
 import io.noties.markwon.image.AsyncDrawableSpan
 import me.saket.telephoto.zoomable.coil.ZoomableAsyncImage
@@ -116,6 +117,16 @@ fun MarkdownText(
 
                 override fun configureConfiguration(builder: MarkwonConfiguration.Builder) {
                     builder.imageSizeResolver(ImageSizeResolverDef())
+                    // Descriptions and comments are untrusted. Only follow web and magnet
+                    // links when tapped; silently ignore dangerous schemes (intent:, file:,
+                    // content:, javascript:, ...) that could trigger unexpected actions.
+                    val default = LinkResolverDef()
+                    builder.linkResolver { view, link ->
+                        when (android.net.Uri.parse(link).scheme?.lowercase()) {
+                            "http", "https", "magnet" -> default.resolve(view, link)
+                            else -> Unit
+                        }
+                    }
                 }
 
                 override fun afterSetText(textView: TextView) {
@@ -231,6 +242,33 @@ fun FullScreenImageDialog(url: String, onDismiss: () -> Unit) {
 
 
 /**
+ * Rewrite an image URL to go through Jetpack Photon (`i0.wp.com`), the same proxy Nyaa's web
+ * UI uses. The device then only ever connects to `wp.com` over HTTPS instead of leaking its
+ * IP to (and trusting the transport of) whatever third-party host a description points at.
+ *
+ * Example: `https://host.example/a.jpg` -> `https://i0.wp.com/host.example/a.jpg?ssl=1`.
+ * `ssl=1` tells Photon the origin is HTTPS. Already-proxied, relative and `data:` URLs, and
+ * unknown schemes are returned unchanged.
+ */
+fun proxifyImageUrl(rawUrl: String): String {
+    val url = rawUrl.trim()
+    if (url.isEmpty() || url.startsWith("data:", ignoreCase = true)) return url
+
+    val (originIsHttps, hostAndPath) = when {
+        url.startsWith("https://", ignoreCase = true) -> true to url.substring("https://".length)
+        url.startsWith("http://", ignoreCase = true) -> false to url.substring("http://".length)
+        url.startsWith("//") -> true to url.substring(2)
+        else -> return url // relative or unknown scheme: leave untouched
+    }
+
+    // Don't double-wrap something already served by the wp.com proxy.
+    if (Regex("^i[0-3]\\.wp\\.com/").containsMatchIn(hostAndPath)) return url
+
+    val sslSuffix = if (originIsHttps) (if (hostAndPath.contains("?")) "&ssl=1" else "?ssl=1") else ""
+    return "https://i0.wp.com/$hostAndPath$sslSuffix"
+}
+
+/**
  * Cleans up Nyaa's markdown before handing it to Markwon.
  *
  * Verified against real nyaa.si descriptions: table rows are already separated by real
@@ -248,8 +286,14 @@ fun sanitizeNyaaMarkdown(input: String): String {
     // Flatten [![alt](img)](link) -> ![alt](img) so the image renders instead of a bare link
     val textWithoutImageLinks = input.replace(Regex("\\[\\!\\[(.*?)\\]\\((.*?)\\)\\]\\((.*?)\\)"), "![$1]($2)")
 
+    // Route every description image through the same image proxy Nyaa's web UI uses, so the
+    // device never connects directly to an arbitrary third-party host (which would leak the
+    // user's IP and could load over plain HTTP). Only image URLs are rewritten, never links.
+    val textWithProxiedImages = textWithoutImageLinks.replace(Regex("!\\[(.*?)\\]\\((.*?)\\)")) { match ->
+        "![${match.groupValues[1]}](${proxifyImageUrl(match.groupValues[2])})"
+    }
 
-    val lines = textWithoutImageLinks.split("\n")
+    val lines = textWithProxiedImages.split("\n")
     val finalOutput = mutableListOf<String>()
     var i = 0
 

@@ -80,13 +80,17 @@ class MainActivity : ComponentActivity() {
             // Drive the active index from the saved preference; a change resets Home to the
             // fresh index for the new site (taxonomies differ between Nyaa and Sukebei).
             val currentSite by themePreferences.siteFlow.collectAsState(initial = NyaaSite.NYAA)
-            val sukebeiEnabled by themePreferences.sukebeiEnabledFlow.collectAsState(initial = false)
+            // null until the stored value is actually read. Using a `false` initial here would
+            // race the site flow on cold start: if the saved site (Sukebei) arrives before this
+            // preference loads, the fallback below would see `false` and reset it to Nyaa.
+            val sukebeiEnabled by themePreferences.sukebeiEnabledFlow.collectAsState(initial = null)
             LaunchedEffect(currentSite) {
                 homeViewModel.onSiteChanged(currentSite)
             }
-            // If Sukebei is turned off while it's the active index, fall back to Nyaa.
+            // If Sukebei is turned off while it's the active index, fall back to Nyaa. Guarded on
+            // `== false` (not null) so this only fires once the real preference is known.
             LaunchedEffect(sukebeiEnabled, currentSite) {
-                if (!sukebeiEnabled && currentSite == NyaaSite.SUKEBEI) {
+                if (sukebeiEnabled == false && currentSite == NyaaSite.SUKEBEI) {
                     themePreferences.setSite(NyaaSite.NYAA)
                 }
             }
@@ -141,7 +145,7 @@ class MainActivity : ComponentActivity() {
                                 tonalElevation = 8.dp
                             ) {
                                 // Sukebei (left) — only when opted in via Settings.
-                                if (sukebeiEnabled) {
+                                if (sukebeiEnabled == true) {
                                     NavigationBarItem(
                                         icon = { Icon(Icons.Filled.Whatshot, contentDescription = stringResource(R.string.nav_sukebei)) },
                                         label = { Text(stringResource(R.string.nav_sukebei)) },
