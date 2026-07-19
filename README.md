@@ -1,15 +1,32 @@
 # NyaaAndroid
 
-A native Android client for [Nyaa.si](https://nyaa.si), built with Kotlin and Jetpack
-Compose. It provides a fast, readable mobile experience for browsing, searching, and
-retrieving torrents, backed by an MVVM architecture and an HTML-scraping data layer
-(Nyaa exposes no public API).
+A native Android client for [Nyaa.si](https://nyaa.si) and its Sukebei sibling, built with
+Kotlin and Jetpack Compose. It provides a fast, readable mobile experience for browsing,
+searching, and retrieving torrents, backed by an MVVM architecture and an HTML-scraping
+data layer (Nyaa exposes no public API).
+
+## Screenshots
+
+<table>
+  <tr>
+    <td align="center"><img src="images/homepage.png" width="240" alt="Home screen"></td>
+    <td align="center"><img src="images/details.png" width="240" alt="Torrent detail"></td>
+    <td align="center"><img src="images/folders.png" width="240" alt="File tree"></td>
+  </tr>
+  <tr>
+    <td align="center"><b>Browse &amp; search</b></td>
+    <td align="center"><b>Torrent detail</b></td>
+    <td align="center"><b>File tree</b></td>
+  </tr>
+</table>
 
 ## Features
 
 ### Discovery and search
 - Category browsing across all Nyaa categories (Anime, Audio, Literature, Live Action,
   Pictures, Software) with full sub-category support.
+- Optional Sukebei (18+) index, opt-in from Settings, with its own category taxonomy and a
+  dedicated switch in the bottom navigation bar.
 - Keyword search and dedicated uploader search (`user:username`).
 - Native quality filter (`No remakes` / `Trusted only`), exposed in the advanced search
   sheet.
@@ -19,7 +36,8 @@ retrieving torrents, backed by an MVVM architecture and an HTML-scraping data la
 
 ### Torrent interaction
 - One-tap magnet handoff to any installed torrent client (Flud, LibreTorrent, etc.).
-- Direct `.torrent` file download for clients that prefer it over magnet links.
+- Save the `.torrent` file wherever you want through the Android document picker — local
+  storage or any connected cloud/remote provider — with no storage permission required.
 - Trusted / remake indicators that mirror Nyaa's row colour coding (green for trusted
   uploads, red for remakes).
 - Local favorites, persisted with Room for offline access.
@@ -29,14 +47,17 @@ retrieving torrents, backed by an MVVM architecture and an HTML-scraping data la
 ### Content rendering
 - Adaptive Markdown rendering: data tables stay horizontal, while screenshot-heavy
   tables are reflowed into vertical lists for readability on mobile.
-- Full-screen image viewer with pinch and double-tap zoom.
+- Full-screen image viewer with pinch, double-tap, and pan zoom (powered by Telephoto).
 - Content sanitisation that handles Nyaa's Markdown quirks, BBCode remnants, and
   malformed table structures.
 
 ### Interface
 - Material 3 (Material You) design.
-- Four themes: Light, Dark, AMOLED, and System-default.
+- Four themes: Light, Dark, AMOLED, and System-default, plus an in-app language selector
+  (English / French), all chosen from compact dropdown selectors.
+- Bottom navigation bar to switch between Nyaa, Sukebei, and Favorites at a glance.
 - Category badges and colour-coded seeder / leecher health indicators.
+- Upload dates rendered in the device's local timezone.
 
 ## Tech stack
 
@@ -49,6 +70,7 @@ retrieving torrents, backed by an MVVM architecture and an HTML-scraping data la
 | HTML parsing | [Jsoup](https://jsoup.org/) |
 | Markdown | [Markwon](https://github.com/noties/Markwon) |
 | Image loading | [Coil](https://coil-kt.github.io/coil/) |
+| Image zoom | [Telephoto](https://github.com/saket/telephoto) |
 | Local storage | [Room](https://developer.android.com/training/data-storage/room) |
 | Preferences | Jetpack DataStore |
 | Build | Android Gradle Plugin 9, Gradle 9.6 |
@@ -100,7 +122,7 @@ The APK is written to `app/build/outputs/apk/debug/`.
 
 ```
 app/src/main/java/com/nagutos/nyaaandroid/
-├── model/            Domain data classes (TorrentUI, TorrentDetail, Comment, TorrentFile)
+├── model/            Domain data classes (TorrentUI, TorrentDetail, Comment, NyaaSite)
 ├── network/          Retrofit service and Jsoup HTML parser
 ├── data/
 │   ├── repository/   TorrentRepository, FavoriteRepository
@@ -110,7 +132,7 @@ app/src/main/java/com/nagutos/nyaaandroid/
 │   ├── components/   Reusable Compose widgets
 │   ├── helpers/      Category colours and icons, scrollbar
 │   └── theme/        Material 3 theme, colours, typography
-└── utils/            ThemePreferences (DataStore)
+└── utils/            ThemePreferences (theme, language, site), LocaleManager
 ```
 
 ## License
