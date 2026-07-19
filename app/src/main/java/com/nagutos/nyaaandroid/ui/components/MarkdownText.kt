@@ -47,6 +47,7 @@ import coil.request.ImageRequest
 import androidx.core.text.method.LinkMovementMethodCompat
 import android.text.style.ClickableSpan
 import io.noties.markwon.MarkwonConfiguration
+import io.noties.markwon.LinkResolverDef
 import io.noties.markwon.image.ImageSizeResolverDef
 import io.noties.markwon.image.AsyncDrawableSpan
 import me.saket.telephoto.zoomable.coil.ZoomableAsyncImage
@@ -116,6 +117,16 @@ fun MarkdownText(
 
                 override fun configureConfiguration(builder: MarkwonConfiguration.Builder) {
                     builder.imageSizeResolver(ImageSizeResolverDef())
+                    // Descriptions and comments are untrusted. Only follow web and magnet
+                    // links when tapped; silently ignore dangerous schemes (intent:, file:,
+                    // content:, javascript:, ...) that could trigger unexpected actions.
+                    val default = LinkResolverDef()
+                    builder.linkResolver { view, link ->
+                        when (android.net.Uri.parse(link).scheme?.lowercase()) {
+                            "http", "https", "magnet" -> default.resolve(view, link)
+                            else -> Unit
+                        }
+                    }
                 }
 
                 override fun afterSetText(textView: TextView) {

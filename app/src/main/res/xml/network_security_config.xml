@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  All app traffic is HTTPS (nyaa.si, sukebei.nyaa.si, and the i*.wp.com image proxy), so
+  cleartext HTTP is disallowed outright. This is defense-in-depth: it also covers API 24-27,
+  where the platform default would otherwise permit cleartext.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false" />
+</network-security-config>
