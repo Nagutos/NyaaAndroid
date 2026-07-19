@@ -4,6 +4,8 @@
     <!-- Navigation -->
     <string name="nav_search">Search</string>
     <string name="nav_favorites">Favorites</string>
+    <string name="nav_nyaa">Nyaa</string>
+    <string name="nav_sukebei">Sukebei</string>
 
     <!-- Common actions -->
     <string name="action_settings">Settings</string>
