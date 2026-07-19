@@ -34,7 +34,9 @@ fun CommentItem(comment: Comment) {
         // --- AVATAR DISPLAY ---
         if (!comment.avatarUrl.isNullOrEmpty()) {
             AsyncImage(
-                model = comment.avatarUrl,
+                // Route the avatar through the same image proxy as description images so the
+                // device never connects directly to the avatar host (no IP leak, HTTPS only).
+                model = proxifyImageUrl(comment.avatarUrl),
                 contentDescription = stringResource(R.string.cd_avatar, comment.user),
                 contentScale = ContentScale.Crop,
                 // Si l'URL est nulle, on affiche l'image locale
