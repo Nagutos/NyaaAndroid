@@ -1,9 +1,20 @@
 package com.nagutos.nyaaandroid.ui.screens.detail
 
+import android.Manifest
 import android.app.Application
+import android.app.DownloadManager
+import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Build
+import android.os.Environment
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.core.content.ContextCompat
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -128,6 +139,26 @@ fun TorrentDetailView(
         onToggleFavorite: () -> Unit) {
     val context = LocalContext.current
 
+    // The detail url is absolute (Sukebei-aware); derive the host so relative .torrent links
+    // and the share link resolve to the right index. Old relative favorites are always nyaa.si.
+    val siteBaseUrl = if (url.contains("sukebei", ignoreCase = true)) "https://sukebei.nyaa.si" else "https://nyaa.si"
+    val shareUrl = if (url.startsWith("http")) url else "$siteBaseUrl$url"
+
+    // Downloading a .torrent needs WRITE_EXTERNAL_STORAGE on API <= 28. We stash the pending
+    // target and enqueue it once the permission result comes back.
+    var pendingDownload by remember { mutableStateOf<Pair<String, String>?>(null) }
+    val storagePermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        val pending = pendingDownload
+        pendingDownload = null
+        if (granted && pending != null) {
+            enqueueTorrentDownload(context, pending.first, pending.second)
+        } else if (!granted) {
+            Toast.makeText(context, R.string.download_torrent_error, Toast.LENGTH_SHORT).show()
+        }
+    }
+
     LazyColumn(
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -165,9 +196,9 @@ fun TorrentDetailView(
                         )
                         Spacer(modifier = Modifier.width(4.dp))
 
-                        val isAnonymous = detail.submitter == "Anonyme"
+                        val isAnonymous = detail.submitter.isBlank()
                         Text(
-                            text = detail.submitter,
+                            text = if (isAnonymous) stringResource(R.string.detail_submitter_anonymous) else detail.submitter,
                             style = MaterialTheme.typography.bodySmall,
                             color = if (isAnonymous) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.primary,
                             fontWeight = FontWeight.Bold,
@@ -270,13 +301,17 @@ fun TorrentDetailView(
                     if (detail.torrentFile.isNotBlank()) {
                         Button(
                             onClick = {
-                                try {
-                                    val fileUrl = normalizeTorrentUrl(detail.torrentFile)
-                                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(fileUrl))
-                                    context.startActivity(intent)
-                                    Toast.makeText(context, R.string.download_torrent_started, Toast.LENGTH_SHORT).show()
-                                } catch (_: Exception) {
-                                    Toast.makeText(context, R.string.download_torrent_error, Toast.LENGTH_SHORT).show()
+                                val fileUrl = normalizeTorrentUrl(detail.torrentFile, siteBaseUrl)
+                                val fileName = torrentFileName(fileUrl, detail.title)
+                                val needsPermission = Build.VERSION.SDK_INT <= Build.VERSION_CODES.P &&
+                                    ContextCompat.checkSelfPermission(
+                                        context, Manifest.permission.WRITE_EXTERNAL_STORAGE
+                                    ) != PackageManager.PERMISSION_GRANTED
+                                if (needsPermission) {
+                                    pendingDownload = fileUrl to fileName
+                                    storagePermissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                                } else {
+                                    enqueueTorrentDownload(context, fileUrl, fileName)
                                 }
                             },
                             modifier = Modifier.fillMaxWidth(),
@@ -314,7 +349,7 @@ fun TorrentDetailView(
                         onClick = {
                             val sendIntent = Intent().apply {
                                 action = Intent.ACTION_SEND
-                                putExtra(Intent.EXTRA_TEXT, context.getString(R.string.detail_share_message, detail.title, url))
+                                putExtra(Intent.EXTRA_TEXT, context.getString(R.string.detail_share_message, detail.title, shareUrl))
                                 type = "text/plain"
                             }
                             val shareIntent = Intent.createChooser(sendIntent, null)
@@ -396,9 +431,45 @@ fun TorrentDetailView(
  * "//nyaa.si/download/..."). Resolve them to an absolute https URL the browser /
  * download manager can open.
  */
-private fun normalizeTorrentUrl(raw: String): String = when {
+private fun normalizeTorrentUrl(raw: String, baseUrl: String): String = when {
     raw.startsWith("http") -> raw
     raw.startsWith("//") -> "https:$raw"
-    raw.startsWith("/") -> "https://nyaa.si$raw"
-    else -> "https://nyaa.si/$raw"
+    raw.startsWith("/") -> "$baseUrl$raw"
+    else -> "$baseUrl/$raw"
+}
+
+/**
+ * Derive a safe ".torrent" file name from the download URL (e.g. "/download/123.torrent"),
+ * falling back to the torrent title when the URL has no usable name.
+ */
+private fun torrentFileName(url: String, title: String): String {
+    val fromUrl = url.substringAfterLast('/').substringBefore('?')
+    val base = if (fromUrl.endsWith(".torrent", ignoreCase = true) && fromUrl.length > ".torrent".length) {
+        fromUrl
+    } else {
+        "${title.take(80)}.torrent"
+    }
+    // Strip characters that are illegal in file names on the download destination.
+    return base.replace(Regex("[\\\\/:*?\"<>|]"), "_")
+}
+
+/**
+ * Enqueue the .torrent into the public Downloads folder via the system DownloadManager,
+ * which handles progress + completion notifications for us.
+ */
+private fun enqueueTorrentDownload(context: Context, url: String, fileName: String) {
+    try {
+        val request = DownloadManager.Request(Uri.parse(url))
+            .setTitle(fileName)
+            .setMimeType("application/x-bittorrent")
+            // Some CDNs reject the default DownloadManager user agent.
+            .addRequestHeader("User-Agent", "Mozilla/5.0")
+            .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+            .setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName)
+        val manager = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+        manager.enqueue(request)
+        Toast.makeText(context, R.string.download_torrent_started, Toast.LENGTH_SHORT).show()
+    } catch (_: Exception) {
+        Toast.makeText(context, R.string.download_torrent_error, Toast.LENGTH_SHORT).show()
+    }
 }

@@ -56,6 +56,7 @@ import androidx.compose.ui.unit.dp
 import androidx.annotation.StringRes
 import com.nagutos.nyaaandroid.R
 import com.nagutos.nyaaandroid.data.local.entity.SavedSearch
+import com.nagutos.nyaaandroid.model.NyaaSite
 
 private data class SubCategory(@StringRes val labelRes: Int, val code: String)
 private data class MainCategory(@StringRes val labelRes: Int, val id: String, val subs: List<SubCategory>)
@@ -86,6 +87,19 @@ private val MAIN_CATEGORIES = listOf(
     )),
 )
 
+// Sukebei (18+) taxonomy — a completely different tree from the main nyaa index.
+private val MAIN_CATEGORIES_SUKEBEI = listOf(
+    MainCategory(R.string.category_all, "0", emptyList()),
+    MainCategory(R.string.category_art, "1", listOf(
+        SubCategory(R.string.subcategory_anime, "1_1"), SubCategory(R.string.subcategory_doujinshi, "1_2"),
+        SubCategory(R.string.subcategory_games, "1_3"), SubCategory(R.string.subcategory_manga, "1_4"),
+        SubCategory(R.string.subcategory_pictures, "1_5"),
+    )),
+    MainCategory(R.string.category_real_life, "2", listOf(
+        SubCategory(R.string.subcategory_photobooks, "2_1"), SubCategory(R.string.subcategory_videos, "2_2"),
+    )),
+)
+
 private val SORT_OPTIONS = listOf(
     R.string.sort_date to "id",
     R.string.sort_size to "size",
@@ -110,6 +124,7 @@ fun AdvancedSearchDialog(
     initialSort: String,
     initialOrder: String,
     initialFilter: Int,
+    site: NyaaSite,
     savedSearches: List<SavedSearch>,
     onDismiss: () -> Unit,
     onSearch: (String, String, String, String, Int, String) -> Unit,
@@ -127,8 +142,9 @@ fun AdvancedSearchDialog(
     var showSaveDialog by remember { mutableStateOf(false) }
     var filterLabel by remember { mutableStateOf("") }
 
+    val mainCategories = if (site == NyaaSite.SUKEBEI) MAIN_CATEGORIES_SUKEBEI else MAIN_CATEGORIES
     val selectedMainId = selectedCategory.substringBefore("_")
-    val selectedMain = MAIN_CATEGORIES.firstOrNull { it.id == selectedMainId } ?: MAIN_CATEGORIES.first()
+    val selectedMain = mainCategories.firstOrNull { it.id == selectedMainId } ?: mainCategories.first()
 
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
         Column(
@@ -197,7 +213,7 @@ fun AdvancedSearchDialog(
             // --- Category: main then sub ---
             SectionLabel(stringResource(R.string.search_category))
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                MAIN_CATEGORIES.forEach { main ->
+                mainCategories.forEach { main ->
                     val selected = main.id == selectedMainId
                     FilterChip(
                         selected = selected,

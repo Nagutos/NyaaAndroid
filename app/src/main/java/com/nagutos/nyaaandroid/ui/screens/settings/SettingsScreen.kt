@@ -20,6 +20,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import com.nagutos.nyaaandroid.R
+import com.nagutos.nyaaandroid.model.NyaaSite
 import com.nagutos.nyaaandroid.utils.AppLanguage
 import com.nagutos.nyaaandroid.utils.AppTheme
 import com.nagutos.nyaaandroid.utils.ThemePreferences
@@ -35,6 +36,7 @@ fun SettingsScreen(
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     val currentLanguage by themePreferences.languageFlow.collectAsState(initial = AppLanguage.SYSTEM)
+    val currentSite by themePreferences.siteFlow.collectAsState(initial = NyaaSite.NYAA)
 
     Scaffold(
         topBar = {
@@ -59,6 +61,28 @@ fun SettingsScreen(
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
         ) {
+            // --- Source (Nyaa vs Sukebei) ---
+            Text(
+                text = stringResource(R.string.settings_source),
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.primary
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Column(modifier = Modifier.selectableGroup()) {
+                ThemeOption(
+                    text = stringResource(R.string.source_nyaa),
+                    selected = currentSite == NyaaSite.NYAA,
+                    onClick = { scope.launch { themePreferences.setSite(NyaaSite.NYAA) } }
+                )
+                ThemeOption(
+                    text = stringResource(R.string.source_sukebei),
+                    selected = currentSite == NyaaSite.SUKEBEI,
+                    onClick = { scope.launch { themePreferences.setSite(NyaaSite.SUKEBEI) } }
+                )
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
             Text(
                 text = stringResource(R.string.settings_appearance),
                 style = MaterialTheme.typography.titleMedium,

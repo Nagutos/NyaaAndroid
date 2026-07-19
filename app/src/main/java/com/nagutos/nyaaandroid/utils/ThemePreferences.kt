@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.nagutos.nyaaandroid.model.NyaaSite
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -27,6 +28,7 @@ enum class AppLanguage(val languageTag: String?) {
 
 private val THEME_KEY = stringPreferencesKey("app_theme")
 private val LANGUAGE_KEY = stringPreferencesKey("app_language")
+private val SITE_KEY = stringPreferencesKey("app_site")
 
 class ThemePreferences(private val context: Context) {
 
@@ -62,6 +64,23 @@ class ThemePreferences(private val context: Context) {
     suspend fun setLanguage(language: AppLanguage) {
         context.dataStore.edit { preferences ->
             preferences[LANGUAGE_KEY] = language.name
+        }
+    }
+
+    // Read active index (Nyaa vs Sukebei)
+    val siteFlow: Flow<NyaaSite> = context.dataStore.data
+        .map { preferences ->
+            try {
+                NyaaSite.valueOf(preferences[SITE_KEY] ?: NyaaSite.NYAA.name)
+            } catch (_: Exception) {
+                NyaaSite.NYAA
+            }
+        }
+
+    // Save active index
+    suspend fun setSite(site: NyaaSite) {
+        context.dataStore.edit { preferences ->
+            preferences[SITE_KEY] = site.name
         }
     }
 }

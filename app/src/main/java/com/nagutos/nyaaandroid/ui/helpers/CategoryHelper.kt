@@ -20,6 +20,12 @@ import androidx.compose.ui.graphics.vector.ImageVector
 
 fun getCategoryColor(category: String): Color {
     return when {
+        // --- Sukebei-specific labels (checked first so they don't fall through to grey) ---
+        category.contains("Doujinshi", ignoreCase = true) -> Color(0xFFAB47BC)
+        category.contains("Manga", ignoreCase = true) -> Color(0xFFFFA726)
+        category.contains("Real Life", ignoreCase = true) -> Color(0xFFEC407A)
+        category.contains("Games", ignoreCase = true) -> Color(0xFF26C6DA)
+
         category.contains("Anime", ignoreCase = true) -> Color(0xFFEF5350)
         category.contains("Audio", ignoreCase = true) -> Color(0xFF7E57C2)
         category.contains("Literature", ignoreCase = true) -> Color(0xFFFFA726)
@@ -32,6 +38,12 @@ fun getCategoryColor(category: String): Color {
 
 fun getCategoryIcon(category: String): ImageVector {
     return when {
+        // --- SUKEBEI (checked first) ---
+        category.contains("Doujinshi", ignoreCase = true) -> Icons.AutoMirrored.Rounded.MenuBook
+        category.contains("Manga", ignoreCase = true) -> Icons.AutoMirrored.Rounded.MenuBook
+        category.contains("Photobooks", ignoreCase = true) -> Icons.Rounded.PhotoLibrary
+        category.contains("Real Life", ignoreCase = true) -> Icons.Rounded.Movie
+
         // --- ANIME ---
         category.contains("Anime - AMV", ignoreCase = true) -> Icons.Rounded.Movie
         category.contains("Anime - English", ignoreCase = true) -> Icons.Rounded.ChatBubble

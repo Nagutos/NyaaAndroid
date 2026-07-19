@@ -67,7 +67,7 @@
     <string name="detail_files_count">Fichiers (%1$d)</string>
     <string name="detail_comments_header">Commentaires (%1$d)</string>
     <string name="detail_comments_empty">Aucun commentaire pour le moment.</string>
-    <string name="detail_share_message">Regarde ce torrent : %1$s\n\nLien : https://nyaa.si%2$s</string>
+    <string name="detail_share_message">Regarde ce torrent : %1$s\n\nLien : %2$s</string>
 
     <!-- Image viewer -->
     <string name="cd_zoom">Agrandissement</string>
@@ -139,4 +139,19 @@
     <string name="action_download_torrent">Télécharger le .torrent</string>
     <string name="download_torrent_started">Téléchargement du fichier .torrent…</string>
     <string name="download_torrent_error">Impossible d\'ouvrir le fichier .torrent.</string>
+
+    <!-- Source (Nyaa / Sukebei) -->
+    <string name="settings_source">Source</string>
+    <string name="source_nyaa">Nyaa (normal)</string>
+    <string name="source_sukebei">Sukebei (18+)</string>
+
+    <!-- Sukebei categories -->
+    <string name="category_art">Art</string>
+    <string name="category_real_life">Vie réelle</string>
+    <string name="subcategory_anime">Anime</string>
+    <string name="subcategory_doujinshi">Doujinshi</string>
+    <string name="subcategory_manga">Manga</string>
+    <string name="subcategory_pictures">Images</string>
+    <string name="subcategory_photobooks">Photobooks</string>
+    <string name="subcategory_videos">Vidéos</string>
 </resources>

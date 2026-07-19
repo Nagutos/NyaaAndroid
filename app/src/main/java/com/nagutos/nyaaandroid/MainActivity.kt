@@ -11,6 +11,7 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.*
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -25,6 +26,9 @@ import com.nagutos.nyaaandroid.ui.screens.Screen
 import com.nagutos.nyaaandroid.ui.screens.detail.DetailScreen
 import com.nagutos.nyaaandroid.ui.screens.favorites.FavoritesScreen
 import com.nagutos.nyaaandroid.ui.screens.home.HomeScreen
+import com.nagutos.nyaaandroid.ui.screens.home.HomeViewModel
+import com.nagutos.nyaaandroid.ui.screens.home.HomeViewModelFactory
+import com.nagutos.nyaaandroid.model.NyaaSite
 import com.nagutos.nyaaandroid.ui.screens.settings.SettingsScreen
 import com.nagutos.nyaaandroid.ui.theme.NyaaAndroidTheme
 import com.nagutos.nyaaandroid.utils.AppTheme
@@ -62,6 +66,19 @@ class MainActivity : ComponentActivity() {
                 factory = FavoritesViewModelFactory(application)
             )
 
+            // Hoisted to the activity so the bottom nav can reset the search back to the
+            // index (re-tapping the "Search" tab) using the same instance the Home screen shows.
+            val homeViewModel: HomeViewModel = viewModel(
+                factory = HomeViewModelFactory(application)
+            )
+
+            // Drive the active index from the saved preference; a change resets Home to the
+            // fresh index for the new site (taxonomies differ between Nyaa and Sukebei).
+            val currentSite by themePreferences.siteFlow.collectAsState(initial = NyaaSite.NYAA)
+            LaunchedEffect(currentSite) {
+                homeViewModel.onSiteChanged(currentSite)
+            }
+
             val favorites by favoritesViewModel.favoriteTorrents.collectAsState(
                 initial = emptyList<FavoriteTorrent>()
             )
@@ -85,6 +102,9 @@ class MainActivity : ComponentActivity() {
                                 tonalElevation = 8.dp
                             ) {
                                 mainScreens.forEach { screen ->
+                                    val isSelected = currentDestination?.hierarchy?.any {
+                                        it.route?.startsWith(screen.route) == true
+                                    } == true
                                     NavigationBarItem(
                                         icon = {
                                             BadgedBox(
@@ -100,11 +120,7 @@ class MainActivity : ComponentActivity() {
                                             }
                                         },
                                         label = { Text(stringResource(screen.labelRes)) },
-                                        selected = currentDestination?.hierarchy?.any {
-                                            it.route?.startsWith(
-                                                screen.route
-                                            ) == true
-                                        } == true,
+                                        selected = isSelected,
                                         colors = NavigationBarItemDefaults.colors(
                                             selectedIconColor = MaterialTheme.colorScheme.primary,
                                             selectedTextColor = MaterialTheme.colorScheme.primary,
@@ -113,12 +129,18 @@ class MainActivity : ComponentActivity() {
                                             unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
                                         ),
                                         onClick = {
-                                            navController.navigate(screen.route) {
-                                                popUpTo(navController.graph.findStartDestination().id) {
-                                                    saveState = true
+                                            // Re-tapping the already-selected Search tab clears
+                                            // the current filters and returns to the recent index.
+                                            if (isSelected && screen == Screen.Search) {
+                                                homeViewModel.resetToIndex()
+                                            } else {
+                                                navController.navigate(screen.route) {
+                                                    popUpTo(navController.graph.findStartDestination().id) {
+                                                        saveState = true
+                                                    }
+                                                    launchSingleTop = true
+                                                    restoreState = true
                                                 }
-                                                launchSingleTop = true
-                                                restoreState = true
                                             }
                                         }
                                     )
@@ -157,6 +179,7 @@ class MainActivity : ComponentActivity() {
                                 val query = backStackEntry.arguments?.getString("query") ?: ""
                                 HomeScreen(
                                     navController = navController,
+                                    viewModel = homeViewModel,
                                     initialQuery = query,
                                     onTorrentClick = { url ->
                                         val encodedUrl = URLEncoder.encode(url, "UTF-8")

@@ -24,6 +24,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.nagutos.nyaaandroid.R
+import com.nagutos.nyaaandroid.model.NyaaSite
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -71,7 +72,7 @@ fun HomeScreen(
             TopAppBar(
                 title = {
                     Column {
-                        Text(stringResource(R.string.home_title))
+                        Text(if (viewModel.site == NyaaSite.SUKEBEI) "Sukebei" else stringResource(R.string.home_title))
                         val filterText = when {
                             viewModel.searchUser != null -> stringResource(R.string.home_filter_uploader, viewModel.searchUser!!)
                             viewModel.searchQuery.isNotEmpty() -> viewModel.searchQuery
@@ -143,6 +144,7 @@ fun HomeScreen(
                         initialSort = viewModel.searchSort,
                         initialOrder = viewModel.searchOrder,
                         initialFilter = viewModel.searchFilter,
+                        site = viewModel.site,
                         savedSearches = savedSearches,
                         onDismiss = { showSearchDialog = false },
                         onSearch = { query, category, sort, order, filter, user ->
