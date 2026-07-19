@@ -140,7 +140,13 @@
     <!-- .torrent file download -->
     <string name="action_download_torrent">Télécharger le .torrent</string>
     <string name="download_torrent_started">Téléchargement du fichier .torrent…</string>
-    <string name="download_torrent_error">Impossible d\'ouvrir le fichier .torrent.</string>
+    <string name="download_torrent_saved">Fichier .torrent enregistré.</string>
+    <string name="download_torrent_error">Échec de l\'enregistrement du fichier .torrent.</string>
+
+    <!-- Content (Sukebei toggle) -->
+    <string name="settings_content">Contenu</string>
+    <string name="enable_sukebei">Activer Sukebei (18+)</string>
+    <string name="enable_sukebei_hint">Affiche l\'index Sukebei (contenu adulte) dans la barre de navigation.</string>
 
     <!-- Source (Nyaa / Sukebei) -->
     <string name="settings_source">Source</string>

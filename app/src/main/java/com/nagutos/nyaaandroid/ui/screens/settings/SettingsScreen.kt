@@ -15,6 +15,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -35,6 +36,7 @@ fun SettingsScreen(
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     val currentLanguage by themePreferences.languageFlow.collectAsState(initial = AppLanguage.SYSTEM)
+    val sukebeiEnabled by themePreferences.sukebeiEnabledFlow.collectAsState(initial = false)
 
     Scaffold(
         topBar = {
@@ -94,6 +96,39 @@ fun SettingsScreen(
                     }
                 }
             )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // --- Content (Sukebei opt-in) ---
+            Text(
+                text = stringResource(R.string.settings_content),
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.primary
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = stringResource(R.string.enable_sukebei),
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                    Text(
+                        text = stringResource(R.string.enable_sukebei_hint),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                Spacer(modifier = Modifier.width(12.dp))
+                Switch(
+                    checked = sukebeiEnabled,
+                    onCheckedChange = { enabled ->
+                        scope.launch { themePreferences.setSukebeiEnabled(enabled) }
+                    }
+                )
+            }
         }
     }
 }

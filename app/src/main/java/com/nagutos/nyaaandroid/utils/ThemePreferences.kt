@@ -1,6 +1,7 @@
 package com.nagutos.nyaaandroid.utils
 
 import android.content.Context
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
@@ -29,6 +30,7 @@ enum class AppLanguage(val languageTag: String?) {
 private val THEME_KEY = stringPreferencesKey("app_theme")
 private val LANGUAGE_KEY = stringPreferencesKey("app_language")
 private val SITE_KEY = stringPreferencesKey("app_site")
+private val SUKEBEI_ENABLED_KEY = booleanPreferencesKey("sukebei_enabled")
 
 class ThemePreferences(private val context: Context) {
 
@@ -81,6 +83,17 @@ class ThemePreferences(private val context: Context) {
     suspend fun setSite(site: NyaaSite) {
         context.dataStore.edit { preferences ->
             preferences[SITE_KEY] = site.name
+        }
+    }
+
+    // Whether the Sukebei (18+) index is available. Off by default so it is strictly opt-in;
+    // when off, the Sukebei tab is hidden from the navigation bar.
+    val sukebeiEnabledFlow: Flow<Boolean> = context.dataStore.data
+        .map { preferences -> preferences[SUKEBEI_ENABLED_KEY] ?: false }
+
+    suspend fun setSukebeiEnabled(enabled: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[SUKEBEI_ENABLED_KEY] = enabled
         }
     }
 }

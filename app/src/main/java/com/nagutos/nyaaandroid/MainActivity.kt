@@ -80,8 +80,15 @@ class MainActivity : ComponentActivity() {
             // Drive the active index from the saved preference; a change resets Home to the
             // fresh index for the new site (taxonomies differ between Nyaa and Sukebei).
             val currentSite by themePreferences.siteFlow.collectAsState(initial = NyaaSite.NYAA)
+            val sukebeiEnabled by themePreferences.sukebeiEnabledFlow.collectAsState(initial = false)
             LaunchedEffect(currentSite) {
                 homeViewModel.onSiteChanged(currentSite)
+            }
+            // If Sukebei is turned off while it's the active index, fall back to Nyaa.
+            LaunchedEffect(sukebeiEnabled, currentSite) {
+                if (!sukebeiEnabled && currentSite == NyaaSite.SUKEBEI) {
+                    themePreferences.setSite(NyaaSite.NYAA)
+                }
             }
             val scope = rememberCoroutineScope()
 
@@ -133,14 +140,16 @@ class MainActivity : ComponentActivity() {
                                 containerColor = MaterialTheme.colorScheme.surface,
                                 tonalElevation = 8.dp
                             ) {
-                                // Sukebei (left)
-                                NavigationBarItem(
-                                    icon = { Icon(Icons.Filled.Whatshot, contentDescription = stringResource(R.string.nav_sukebei)) },
-                                    label = { Text(stringResource(R.string.nav_sukebei)) },
-                                    selected = onHome && currentSite == NyaaSite.SUKEBEI,
-                                    colors = navColors,
-                                    onClick = { selectSite(NyaaSite.SUKEBEI) }
-                                )
+                                // Sukebei (left) — only when opted in via Settings.
+                                if (sukebeiEnabled) {
+                                    NavigationBarItem(
+                                        icon = { Icon(Icons.Filled.Whatshot, contentDescription = stringResource(R.string.nav_sukebei)) },
+                                        label = { Text(stringResource(R.string.nav_sukebei)) },
+                                        selected = onHome && currentSite == NyaaSite.SUKEBEI,
+                                        colors = navColors,
+                                        onClick = { selectSite(NyaaSite.SUKEBEI) }
+                                    )
+                                }
                                 // Nyaa (center)
                                 NavigationBarItem(
                                     icon = { Icon(Icons.Filled.Search, contentDescription = stringResource(R.string.nav_nyaa)) },
