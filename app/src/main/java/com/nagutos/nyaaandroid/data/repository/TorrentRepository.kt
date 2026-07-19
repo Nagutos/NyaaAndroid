@@ -43,6 +43,11 @@ class TorrentRepository(
         NyaaHtmlParser.parseTorrents(body.string(), site)
     }
 
+    /** Fetch the raw bytes of a resource (e.g. a .torrent file) for saving to user storage. */
+    suspend fun downloadBytes(url: String): ByteArray = withContext(Dispatchers.IO) {
+        api.getHtml(url).bytes()
+    }
+
     suspend fun getDetail(url: String): TorrentDetail = withContext(Dispatchers.IO) {
         // detailUrl is absolute for new listings; older favorites may still hold a relative
         // "/view/id", which predates Sukebei support and is therefore always a nyaa.si link.

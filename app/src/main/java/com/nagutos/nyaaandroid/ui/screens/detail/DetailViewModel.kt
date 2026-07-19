@@ -1,6 +1,7 @@
 package com.nagutos.nyaaandroid.ui.screens.detail
 
 import android.app.Application
+import android.net.Uri
 import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -15,10 +16,13 @@ import com.nagutos.nyaaandroid.data.repository.FavoriteRepository
 import com.nagutos.nyaaandroid.data.repository.TorrentRepository
 import com.nagutos.nyaaandroid.model.TorrentDetail
 import com.nagutos.nyaaandroid.model.TorrentUI
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.IOException
 
 sealed interface DetailUiState {
     data object Loading : DetailUiState
@@ -59,6 +63,29 @@ class DetailViewModel(
                 Log.e(TAG, "Failed to load torrent detail for $url", e)
                 uiState = DetailUiState.Error(e.message ?: "Erreur de connexion")
             }
+        }
+    }
+
+    /**
+     * Download the .torrent at [sourceUrl] and write it to the user-picked [destUri]
+     * (from the Storage Access Framework, so it may be local or a remote/cloud provider).
+     * [onResult] is invoked on the main thread with success/failure for a toast.
+     */
+    fun saveTorrentToUri(sourceUrl: String, destUri: Uri, onResult: (Boolean) -> Unit) {
+        viewModelScope.launch {
+            val success = try {
+                val bytes = torrentRepository.downloadBytes(sourceUrl)
+                withContext(Dispatchers.IO) {
+                    val resolver = getApplication<Application>().contentResolver
+                    resolver.openOutputStream(destUri)?.use { it.write(bytes) }
+                        ?: throw IOException("Could not open output stream for $destUri")
+                }
+                true
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to save .torrent from $sourceUrl", e)
+                false
+            }
+            onResult(success)
         }
     }
 

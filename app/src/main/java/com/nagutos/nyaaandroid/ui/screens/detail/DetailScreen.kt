@@ -1,20 +1,13 @@
 package com.nagutos.nyaaandroid.ui.screens.detail
 
-import android.Manifest
 import android.app.Application
-import android.app.DownloadManager
-import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.net.Uri
-import android.os.Build
-import android.os.Environment
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.core.content.ContextCompat
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -122,6 +115,9 @@ fun DetailScreen(
                         onToggleFavorite = {
                             val torrentUI = state.detail.toTorrentUI(currentId, url)
                             viewModel.toggleFavorite(torrentUI, isFavorite)
+                        },
+                        onSaveTorrent = { source, dest, onResult ->
+                            viewModel.saveTorrentToUri(source, dest, onResult)
                         }
                     )
                 }
@@ -136,7 +132,8 @@ fun TorrentDetailView(
         navController: NavController,
         url: String,
         isFavorite: Boolean,
-        onToggleFavorite: () -> Unit) {
+        onToggleFavorite: () -> Unit,
+        onSaveTorrent: (String, Uri, (Boolean) -> Unit) -> Unit) {
     val context = LocalContext.current
 
     // The detail url is absolute (Sukebei-aware); derive the host so relative .torrent links
@@ -144,18 +141,21 @@ fun TorrentDetailView(
     val siteBaseUrl = if (url.contains("sukebei", ignoreCase = true)) "https://sukebei.nyaa.si" else "https://nyaa.si"
     val shareUrl = if (url.startsWith("http")) url else "$siteBaseUrl$url"
 
-    // Downloading a .torrent needs WRITE_EXTERNAL_STORAGE on API <= 28. We stash the pending
-    // target and enqueue it once the permission result comes back.
-    var pendingDownload by remember { mutableStateOf<Pair<String, String>?>(null) }
-    val storagePermissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { granted ->
-        val pending = pendingDownload
-        pendingDownload = null
-        if (granted && pending != null) {
-            enqueueTorrentDownload(context, pending.first, pending.second)
-        } else if (!granted) {
-            Toast.makeText(context, R.string.download_torrent_error, Toast.LENGTH_SHORT).show()
+    // The Storage Access Framework lets the user pick where to save the .torrent — local
+    // storage or any remote/cloud provider they have on the device — with no storage
+    // permission. We stash the source URL until the destination URI comes back.
+    val savedMessage = stringResource(R.string.download_torrent_saved)
+    val errorMessage = stringResource(R.string.download_torrent_error)
+    var pendingTorrentUrl by remember { mutableStateOf<String?>(null) }
+    val saveTorrentLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument("application/x-bittorrent")
+    ) { uri: Uri? ->
+        val source = pendingTorrentUrl
+        pendingTorrentUrl = null
+        if (uri != null && source != null) {
+            onSaveTorrent(source, uri) { success ->
+                Toast.makeText(context, if (success) savedMessage else errorMessage, Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
@@ -302,17 +302,9 @@ fun TorrentDetailView(
                         Button(
                             onClick = {
                                 val fileUrl = normalizeTorrentUrl(detail.torrentFile, siteBaseUrl)
-                                val fileName = torrentFileName(fileUrl, detail.title)
-                                val needsPermission = Build.VERSION.SDK_INT <= Build.VERSION_CODES.P &&
-                                    ContextCompat.checkSelfPermission(
-                                        context, Manifest.permission.WRITE_EXTERNAL_STORAGE
-                                    ) != PackageManager.PERMISSION_GRANTED
-                                if (needsPermission) {
-                                    pendingDownload = fileUrl to fileName
-                                    storagePermissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                                } else {
-                                    enqueueTorrentDownload(context, fileUrl, fileName)
-                                }
+                                pendingTorrentUrl = fileUrl
+                                // Opens the system "create document" picker (local + remote providers).
+                                saveTorrentLauncher.launch(torrentFileName(fileUrl, detail.title))
                             },
                             modifier = Modifier.fillMaxWidth(),
                             colors = ButtonDefaults.buttonColors(
@@ -453,23 +445,3 @@ private fun torrentFileName(url: String, title: String): String {
     return base.replace(Regex("[\\\\/:*?\"<>|]"), "_")
 }
 
-/**
- * Enqueue the .torrent into the public Downloads folder via the system DownloadManager,
- * which handles progress + completion notifications for us.
- */
-private fun enqueueTorrentDownload(context: Context, url: String, fileName: String) {
-    try {
-        val request = DownloadManager.Request(Uri.parse(url))
-            .setTitle(fileName)
-            .setMimeType("application/x-bittorrent")
-            // Some CDNs reject the default DownloadManager user agent.
-            .addRequestHeader("User-Agent", "Mozilla/5.0")
-            .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
-            .setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName)
-        val manager = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-        manager.enqueue(request)
-        Toast.makeText(context, R.string.download_torrent_started, Toast.LENGTH_SHORT).show()
-    } catch (_: Exception) {
-        Toast.makeText(context, R.string.download_torrent_error, Toast.LENGTH_SHORT).show()
-    }
-}
