@@ -10,9 +10,15 @@ import androidx.compose.animation.ExitTransition
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Whatshot
 import androidx.compose.material3.*
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -25,6 +31,9 @@ import com.nagutos.nyaaandroid.ui.screens.Screen
 import com.nagutos.nyaaandroid.ui.screens.detail.DetailScreen
 import com.nagutos.nyaaandroid.ui.screens.favorites.FavoritesScreen
 import com.nagutos.nyaaandroid.ui.screens.home.HomeScreen
+import com.nagutos.nyaaandroid.ui.screens.home.HomeViewModel
+import com.nagutos.nyaaandroid.ui.screens.home.HomeViewModelFactory
+import com.nagutos.nyaaandroid.model.NyaaSite
 import com.nagutos.nyaaandroid.ui.screens.settings.SettingsScreen
 import com.nagutos.nyaaandroid.ui.theme.NyaaAndroidTheme
 import com.nagutos.nyaaandroid.utils.AppTheme
@@ -62,6 +71,27 @@ class MainActivity : ComponentActivity() {
                 factory = FavoritesViewModelFactory(application)
             )
 
+            // Hoisted to the activity so the bottom nav can reset the search back to the
+            // index (re-tapping the "Search" tab) using the same instance the Home screen shows.
+            val homeViewModel: HomeViewModel = viewModel(
+                factory = HomeViewModelFactory(application)
+            )
+
+            // Drive the active index from the saved preference; a change resets Home to the
+            // fresh index for the new site (taxonomies differ between Nyaa and Sukebei).
+            val currentSite by themePreferences.siteFlow.collectAsState(initial = NyaaSite.NYAA)
+            val sukebeiEnabled by themePreferences.sukebeiEnabledFlow.collectAsState(initial = false)
+            LaunchedEffect(currentSite) {
+                homeViewModel.onSiteChanged(currentSite)
+            }
+            // If Sukebei is turned off while it's the active index, fall back to Nyaa.
+            LaunchedEffect(sukebeiEnabled, currentSite) {
+                if (!sukebeiEnabled && currentSite == NyaaSite.SUKEBEI) {
+                    themePreferences.setSite(NyaaSite.NYAA)
+                }
+            }
+            val scope = rememberCoroutineScope()
+
             val favorites by favoritesViewModel.favoriteTorrents.collectAsState(
                 initial = emptyList<FavoriteTorrent>()
             )
@@ -75,54 +105,79 @@ class MainActivity : ComponentActivity() {
             ) {
                 Scaffold(
                     bottomBar = {
-                        val isMainScreen = mainScreens.any {
-                            it.route == currentDestination?.route?.split("?")?.first()
-                        }
+                        val currentRoute = currentDestination?.route?.split("?")?.first()
+                        val isMainScreen = mainScreens.any { it.route == currentRoute }
 
                         if (isMainScreen) {
+                            val onHome = currentRoute == Screen.Search.route
+                            val onFavorites = currentRoute == Screen.Favorites.route
+
+                            // Tapping a site tab persists the choice and shows its home list;
+                            // tapping the site you're already on resets it to the recent index.
+                            val selectSite: (NyaaSite) -> Unit = { targetSite ->
+                                val alreadyHere = onHome && currentSite == targetSite
+                                scope.launch { themePreferences.setSite(targetSite) }
+                                if (alreadyHere) {
+                                    homeViewModel.resetToIndex()
+                                } else {
+                                    navController.navigate(Screen.Search.route) {
+                                        popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                                        launchSingleTop = true
+                                        restoreState = true
+                                    }
+                                }
+                            }
+
+                            val navColors = NavigationBarItemDefaults.colors(
+                                selectedIconColor = MaterialTheme.colorScheme.primary,
+                                selectedTextColor = MaterialTheme.colorScheme.primary,
+                                indicatorColor = MaterialTheme.colorScheme.primaryContainer,
+                                unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+
                             NavigationBar(
                                 containerColor = MaterialTheme.colorScheme.surface,
                                 tonalElevation = 8.dp
                             ) {
-                                mainScreens.forEach { screen ->
+                                // Sukebei (left) — only when opted in via Settings.
+                                if (sukebeiEnabled) {
                                     NavigationBarItem(
-                                        icon = {
-                                            BadgedBox(
-                                                badge = {
-                                                    if (screen == Screen.Favorites && favoritesCount > 0) {
-                                                        Badge {
-                                                            Text(favoritesCount.toString())
-                                                        }
-                                                    }
-                                                }
-                                            ) {
-                                                Icon(screen.icon, contentDescription = stringResource(screen.labelRes))
-                                            }
-                                        },
-                                        label = { Text(stringResource(screen.labelRes)) },
-                                        selected = currentDestination?.hierarchy?.any {
-                                            it.route?.startsWith(
-                                                screen.route
-                                            ) == true
-                                        } == true,
-                                        colors = NavigationBarItemDefaults.colors(
-                                            selectedIconColor = MaterialTheme.colorScheme.primary,
-                                            selectedTextColor = MaterialTheme.colorScheme.primary,
-                                            indicatorColor = MaterialTheme.colorScheme.primaryContainer,
-                                            unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                            unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
-                                        ),
-                                        onClick = {
-                                            navController.navigate(screen.route) {
-                                                popUpTo(navController.graph.findStartDestination().id) {
-                                                    saveState = true
-                                                }
-                                                launchSingleTop = true
-                                                restoreState = true
-                                            }
-                                        }
+                                        icon = { Icon(Icons.Filled.Whatshot, contentDescription = stringResource(R.string.nav_sukebei)) },
+                                        label = { Text(stringResource(R.string.nav_sukebei)) },
+                                        selected = onHome && currentSite == NyaaSite.SUKEBEI,
+                                        colors = navColors,
+                                        onClick = { selectSite(NyaaSite.SUKEBEI) }
                                     )
                                 }
+                                // Nyaa (center)
+                                NavigationBarItem(
+                                    icon = { Icon(Icons.Filled.Search, contentDescription = stringResource(R.string.nav_nyaa)) },
+                                    label = { Text(stringResource(R.string.nav_nyaa)) },
+                                    selected = onHome && currentSite == NyaaSite.NYAA,
+                                    colors = navColors,
+                                    onClick = { selectSite(NyaaSite.NYAA) }
+                                )
+                                // Favorites (right)
+                                NavigationBarItem(
+                                    icon = {
+                                        BadgedBox(badge = {
+                                            if (favoritesCount > 0) Badge { Text(favoritesCount.toString()) }
+                                        }) {
+                                            Icon(Screen.Favorites.icon, contentDescription = stringResource(Screen.Favorites.labelRes))
+                                        }
+                                    },
+                                    label = { Text(stringResource(Screen.Favorites.labelRes)) },
+                                    selected = onFavorites,
+                                    colors = navColors,
+                                    onClick = {
+                                        navController.navigate(Screen.Favorites.route) {
+                                            popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                                            launchSingleTop = true
+                                            restoreState = true
+                                        }
+                                    }
+                                )
                             }
                         }
                     }
@@ -157,6 +212,7 @@ class MainActivity : ComponentActivity() {
                                 val query = backStackEntry.arguments?.getString("query") ?: ""
                                 HomeScreen(
                                     navController = navController,
+                                    viewModel = homeViewModel,
                                     initialQuery = query,
                                     onTorrentClick = { url ->
                                         val encodedUrl = URLEncoder.encode(url, "UTF-8")

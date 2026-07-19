@@ -1,21 +1,34 @@
 package com.nagutos.nyaaandroid.network
 
 import com.nagutos.nyaaandroid.model.Comment
+import com.nagutos.nyaaandroid.model.NyaaSite
 import com.nagutos.nyaaandroid.model.TorrentFile
 import com.nagutos.nyaaandroid.model.TorrentDetail
 import com.nagutos.nyaaandroid.model.TorrentUI
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 object NyaaHtmlParser {
 
-    fun parseTorrents(html: String): List<TorrentUI> {
+    /**
+     * Nyaa exposes each date both as a UTC string ("2026-04-10 21:42 UTC") and as a
+     * `data-timestamp` epoch (seconds). We render the epoch in the device's local
+     * timezone so the displayed time matches the user's clock instead of staying in UTC.
+     * A fresh formatter per call keeps this thread-safe (SimpleDateFormat is not).
+     */
+    private fun formatTimestamp(epochSeconds: Long): String =
+        SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()).format(Date(epochSeconds * 1000))
+
+    fun parseTorrents(html: String, site: NyaaSite = NyaaSite.NYAA): List<TorrentUI> {
         val doc = Jsoup.parse(html)
         val rows = doc.select("table.torrent-list tbody tr")
 
         return rows.mapNotNull { row ->
             try {
-                parseRow(row)
+                parseRow(row, site)
             } catch (e: Exception) {
                 e.printStackTrace()
                 null
@@ -23,7 +36,7 @@ object NyaaHtmlParser {
         }
     }
 
-    private fun parseRow(row: Element): TorrentUI {
+    private fun parseRow(row: Element, site: NyaaSite): TorrentUI {
         val cells = row.select("td")
 
         // 1. Retrieve the category ID (e.g., “1_2”) via the link
@@ -34,8 +47,11 @@ object NyaaHtmlParser {
         val titleLinks = cells[1].select("a:not(.comments)")
         val titleElement = titleLinks.last()
         val title = titleElement?.text() ?: "Inconnu"
-        val detailUrl = titleElement?.attr("href") ?: ""
-        val id = detailUrl.substringAfter("/view/")
+        val relativeDetail = titleElement?.attr("href") ?: ""
+        val id = relativeDetail.substringAfter("/view/")
+        // Absolute so the detail screen (and favorites) target the right host regardless of
+        // which index the row came from.
+        val detailUrl = if (relativeDetail.startsWith("http")) relativeDetail else "${site.baseUrl}$relativeDetail"
 
         // 3. Magnet Link
         val links = cells[2].select("a")
@@ -44,12 +60,14 @@ object NyaaHtmlParser {
 
         // 4. Miscellaneous information
         val size = cells[3].text()
-        val date = cells[4].text()
+        // Prefer the epoch timestamp (rendered local) over the raw UTC text.
+        val date = cells[4].attr("data-timestamp").toLongOrNull()
+            ?.let { formatTimestamp(it) } ?: cells[4].text()
         val seeders = cells[5].text().toIntOrNull() ?: 0
         val leechers = cells[6].text().toIntOrNull() ?: 0
         val downloads = cells[7].text().toIntOrNull() ?: 0
 
-        val fullCategoryLabel = getCategoryLabel(categoryId)
+        val fullCategoryLabel = getCategoryLabel(categoryId, site)
 
         // Nyaa flags each row with a Bootstrap contextual class:
         // "success" = trusted uploader (green), "danger" = remake (red).
@@ -72,7 +90,8 @@ object NyaaHtmlParser {
         )
     }
 
-    private fun getCategoryLabel(id: String): String {
+    private fun getCategoryLabel(id: String, site: NyaaSite): String {
+        if (site == NyaaSite.SUKEBEI) return getSukebeiCategoryLabel(id)
         return when (id) {
             // --- 1. ANIME ---
             "1_1" -> "Anime - AMV"
@@ -107,6 +126,24 @@ object NyaaHtmlParser {
         }
     }
 
+    /** Sukebei (18+) taxonomy — a different category tree from the main nyaa index. */
+    private fun getSukebeiCategoryLabel(id: String): String {
+        return when (id) {
+            // --- 1. ART ---
+            "1_1" -> "Art - Anime"
+            "1_2" -> "Art - Doujinshi"
+            "1_3" -> "Art - Games"
+            "1_4" -> "Art - Manga"
+            "1_5" -> "Art - Pictures"
+
+            // --- 2. REAL LIFE ---
+            "2_1" -> "Real Life - Photobooks"
+            "2_2" -> "Real Life - Videos"
+
+            else -> "Autre"
+        }
+    }
+
     // --- PARSING DETAIL ---
     fun parseDetail(html: String): TorrentDetail {
         val doc = Jsoup.parse(html)
@@ -127,6 +164,18 @@ object NyaaHtmlParser {
         val element = doc.select("#torrent-description").first()
         val descriptionRaw = element?.wholeText() ?: ""
 
+        // Scope the submitter to the info-panel row, not the whole page: comments also
+        // contain /user/ links, and picking the first one on an anonymous torrent showed
+        // a random commenter as the uploader. An anonymous upload has no link here, so we
+        // return an empty string and let the UI show the localized "Anonymous" label.
+        val submitterName = doc.select("div:containsOwn(Submitter:) + div")
+            .first()?.selectFirst("a[href^=/user/]")?.text()?.trim() ?: ""
+
+        // Date row: convert the epoch timestamp to local time (falls back to the UTC text).
+        val dateCell = doc.select("div:containsOwn(Date:) + div").first()
+        val submittedDate = dateCell?.attr("data-timestamp")?.toLongOrNull()
+            ?.let { formatTimestamp(it) } ?: (dateCell?.text()?.trim() ?: "")
+
         return TorrentDetail(
             title = doc.select("h3.panel-title").first()?.text()?.replace("File details", "")?.trim() ?: "Inconnu",
             category = getRowData("Category"),
@@ -134,8 +183,8 @@ object NyaaHtmlParser {
             torrentFile = doc.select("a[href$=.torrent]").attr("href"),
             descriptionHtml = descriptionRaw,
             infoHash = doc.select("kbd").first()?.text() ?: "",
-            submitter = doc.select("a[href^=/user/]").first()?.text() ?: "Anonyme",
-            date = getRowData("Date"),
+            submitter = submitterName,
+            date = submittedDate,
             completed = getRowData("Completed"),
             totalSize = getRowData("File size"),
             seeders = doc.select("span[style*=color: green]").first()?.text() ?: "0",

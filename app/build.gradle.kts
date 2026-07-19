@@ -28,8 +28,8 @@ android {
         applicationId = "com.nagutos.nyaaandroid"
         minSdk = 24
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "1.1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -109,6 +109,9 @@ dependencies {
     implementation("org.jsoup:jsoup:1.22.2")
     // --- Images (Coil) ---
     implementation("io.coil-kt:coil-compose:2.7.0")
+    // Zoomable full-screen image viewer (pinch/pan/double-tap + sub-sampling for large images).
+    // 0.15.1 is the last Coil-2 release; 0.16.0+ requires Coil 3 (incompatible with Markwon's coil plugin).
+    implementation("me.saket.telephoto:zoomable-image-coil:0.15.1")
     implementation("androidx.compose.material:material-icons-extended")
     // --- Markdown ---
     implementation("io.noties.markwon:core:4.6.2")

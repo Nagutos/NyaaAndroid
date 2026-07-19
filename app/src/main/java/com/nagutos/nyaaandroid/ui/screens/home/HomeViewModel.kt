@@ -12,6 +12,7 @@ import com.nagutos.nyaaandroid.data.local.entity.NyaaDatabase
 import com.nagutos.nyaaandroid.data.local.entity.SavedSearch
 import com.nagutos.nyaaandroid.data.repository.FavoriteRepository
 import com.nagutos.nyaaandroid.data.repository.TorrentRepository
+import com.nagutos.nyaaandroid.model.NyaaSite
 import com.nagutos.nyaaandroid.model.TorrentUI
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
@@ -53,6 +54,10 @@ class HomeViewModel(
 
     // Nyaa's "f" query param: 0 = no filter, 1 = no remakes, 2 = trusted only.
     var searchFilter by mutableStateOf(0)
+        private set
+
+    // Active index (Nyaa vs Sukebei). Driven from the saved preference by the Activity.
+    var site by mutableStateOf(NyaaSite.NYAA)
         private set
 
     private val database = NyaaDatabase.getDatabase(application)
@@ -117,6 +122,26 @@ class HomeViewModel(
         }
     }
 
+    /** True when any filter/search/page is active, i.e. we're not on the plain recent index. */
+    val isOnIndex: Boolean
+        get() = searchQuery.isEmpty() && searchUser == null && searchCategory == "0_0" &&
+                currentPage == 1 && searchSort == "id" && searchOrder == "desc" && searchFilter == 0
+
+    /** Reset every filter back to the recent index. Reloads even if already there (acts as refresh). */
+    fun resetToIndex() {
+        onSearch("", "0_0")
+    }
+
+    /**
+     * Switch the active index. The category taxonomies differ between Nyaa and Sukebei, so we
+     * drop all filters and reload the fresh index for the new site. No-op if unchanged.
+     */
+    fun onSiteChanged(newSite: NyaaSite) {
+        if (newSite == site) return
+        site = newSite
+        onSearch("", "0_0")
+    }
+
     fun onUserSearch(username: String) {
         searchUser = username
         searchQuery = ""
@@ -159,7 +184,8 @@ class HomeViewModel(
                     user = searchUser,
                     sort = searchSort,
                     order = searchOrder,
-                    filter = searchFilter
+                    filter = searchFilter,
+                    site = site
                 )
                 // Keep the (empty) success state on out-of-range pages so the UI can offer
                 // to step back instead of showing an error.
