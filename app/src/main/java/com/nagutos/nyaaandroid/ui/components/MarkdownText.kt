@@ -49,6 +49,9 @@ import android.text.style.ClickableSpan
 import io.noties.markwon.MarkwonConfiguration
 import io.noties.markwon.image.ImageSizeResolverDef
 import io.noties.markwon.image.AsyncDrawableSpan
+import me.saket.telephoto.zoomable.coil.ZoomableAsyncImage
+import me.saket.telephoto.zoomable.rememberZoomableImageState
+import me.saket.telephoto.zoomable.rememberZoomableState
 
 // Enable the display of images in tables in descriptions
 
@@ -180,8 +183,10 @@ fun FullScreenImageDialog(url: String, onDismiss: () -> Unit) {
         onDismissRequest = onDismiss,
         properties = DialogProperties(usePlatformDefaultWidth = false)
     ) {
-        var scale by remember { mutableStateOf(1f) }
-        var offset by remember { mutableStateOf(Offset.Zero) }
+        val context = LocalContext.current
+        // Telephoto handles pinch-zoom, double-tap-to-zoom, pan, fling and sub-sampling of
+        // large images out of the box — no need to reimplement gesture math ourselves.
+        val zoomableState = rememberZoomableState()
 
         Box(
             modifier = Modifier
@@ -189,40 +194,21 @@ fun FullScreenImageDialog(url: String, onDismiss: () -> Unit) {
                 .background(Color.Black.copy(alpha = 0.95f)),
             contentAlignment = Alignment.Center
         ) {
-            AsyncImage(
-                model = url,
+            ZoomableAsyncImage(
+                model = ImageRequest.Builder(context)
+                    .data(url)
+                    .crossfade(true)
+                    .build(),
                 contentDescription = stringResource(R.string.cd_zoom),
-                contentScale = ContentScale.Fit,
+                state = rememberZoomableImageState(zoomableState),
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(16.dp)
-                    // Single tap dismisses only when not zoomed; double tap toggles zoom.
-                    .pointerInput(Unit) {
-                        detectTapGestures(
-                            onTap = { if (scale <= 1f) onDismiss() },
-                            onDoubleTap = {
-                                if (scale > 1f) {
-                                    scale = 1f
-                                    offset = Offset.Zero
-                                } else {
-                                    scale = 2.5f
-                                }
-                            }
-                        )
-                    }
-                    // Pinch to zoom (1x–5x) and drag to pan once zoomed in.
-                    .pointerInput(Unit) {
-                        detectTransformGestures { _, pan, zoom, _ ->
-                            scale = (scale * zoom).coerceIn(1f, 5f)
-                            offset = if (scale > 1f) offset + pan else Offset.Zero
-                        }
-                    }
-                    .graphicsLayer {
-                        scaleX = scale
-                        scaleY = scale
-                        translationX = offset.x
-                        translationY = offset.y
-                    }
+                    .padding(16.dp),
+                // A single tap dismisses only when the image is at its resting (un-zoomed) scale.
+                onClick = {
+                    val zoom = zoomableState.zoomFraction
+                    if (zoom == null || zoom == 0f) onDismiss()
+                }
             )
 
             Surface(
