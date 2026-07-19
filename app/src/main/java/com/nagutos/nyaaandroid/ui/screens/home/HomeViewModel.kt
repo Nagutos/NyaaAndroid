@@ -14,6 +14,8 @@ import com.nagutos.nyaaandroid.data.repository.FavoriteRepository
 import com.nagutos.nyaaandroid.data.repository.TorrentRepository
 import com.nagutos.nyaaandroid.model.NyaaSite
 import com.nagutos.nyaaandroid.model.TorrentUI
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -173,8 +175,15 @@ class HomeViewModel(
 
     fun isFavorite(torrentId: String): Flow<Boolean> = repository.isFavorite(torrentId)
 
+    // Tracks the in-flight load so a newer one can cancel it. Without this, two overlapping
+    // loads (e.g. the initial Nyaa fetch and a Sukebei switch) can resolve out of order and the
+    // slower/stale response overwrites uiState — leaving the list and the title showing
+    // different sites.
+    private var loadJob: Job? = null
+
     fun loadTorrents() {
-        viewModelScope.launch {
+        loadJob?.cancel()
+        loadJob = viewModelScope.launch {
             uiState = HomeUiState.Loading
             try {
                 val items = torrentRepository.getTorrents(
@@ -190,6 +199,9 @@ class HomeViewModel(
                 // Keep the (empty) success state on out-of-range pages so the UI can offer
                 // to step back instead of showing an error.
                 uiState = HomeUiState.Success(items)
+            } catch (e: CancellationException) {
+                // Superseded by a newer load — let it own uiState, don't show an error.
+                throw e
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to load torrents", e)
                 uiState = HomeUiState.Error(e.message ?: "Erreur inconnue")
